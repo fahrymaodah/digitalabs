@@ -78,9 +78,9 @@ class AppServiceProvider extends ServiceProvider
             });
         });
 
-        // Checkout rate limiter (10 checkouts per hour per user)
+        // Checkout rate limiter (50 checkouts per hour per user - increased for staging)
         RateLimiter::for('checkout', function (Request $request) {
-            return Limit::perHour(10)->by($request->user()?->id ?: $request->ip());
+            return Limit::perHour(50)->by($request->user()?->id ?: $request->ip());
         });
 
         // Webhook rate limiter (100 requests per minute - for payment callbacks)
@@ -93,9 +93,9 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->ip());
         });
 
-        // Coupon apply rate limiter (10 attempts per minute per user)
+        // Coupon apply rate limiter (30 attempts per minute per user - increased for testing)
         RateLimiter::for('coupon', function (Request $request) {
-            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+            return Limit::perMinute(30)->by($request->user()?->id ?: $request->ip());
         });
     }
 }
