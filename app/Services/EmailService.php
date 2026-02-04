@@ -122,7 +122,7 @@ class EmailService
     public function sendNewCommissionEmail(AffiliateCommission $commission): void
     {
         try {
-            $commission->load(['affiliate.user', 'order.course']);
+            $commission->load(['affiliate.user', 'order.items.course']);
             
             $affiliate = $commission->affiliate;
             $totalCommissions = $affiliate->commissions()->count();
