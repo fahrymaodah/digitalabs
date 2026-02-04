@@ -19,7 +19,10 @@ class AffiliateApprovedMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public Affiliate $affiliate
-    ) {}
+    ) {
+        // Load relationships needed for email
+        $this->affiliate->loadMissing(['user']);
+    }
 
     /**
      * Get the message envelope.
@@ -36,6 +39,9 @@ class AffiliateApprovedMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Ensure relationships are loaded for the view
+        $this->affiliate->loadMissing(['user']);
+        
         return new Content(
             view: 'emails.affiliate.approved',
             with: [

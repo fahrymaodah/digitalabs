@@ -19,15 +19,23 @@ class PaymentSuccessMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public Order $order
-    ) {}
+    ) {
+        // Load relationships needed for email
+        $this->order->loadMissing(['user', 'items.course']);
+    }
 
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
+        // Reload relationships after queue deserialization
+        $this->order->loadMissing(['items.course']);
+        
+        $courseTitle = $this->order->course?->title ?? 'Course';
+        
         return new Envelope(
-            subject: '✅ Pembayaran Berhasil - ' . $this->order->course->title,
+            subject: '✅ Pembayaran Berhasil - ' . $courseTitle,
         );
     }
 
@@ -36,6 +44,9 @@ class PaymentSuccessMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Ensure relationships are loaded for the view
+        $this->order->loadMissing(['user', 'items.course', 'coupon']);
+        
         return new Content(
             view: 'emails.order.payment-success',
             with: [

@@ -22,7 +22,10 @@ class NewCommissionMail extends Mailable implements ShouldQueue
         public int $totalCommissions = 0,
         public float $pendingBalance = 0,
         public float $totalEarnings = 0
-    ) {}
+    ) {
+        // Load relationships needed for email
+        $this->commission->loadMissing(['affiliate.user', 'order.items.course', 'order.user']);
+    }
 
     /**
      * Get the message envelope.
@@ -39,6 +42,9 @@ class NewCommissionMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Ensure relationships are loaded for the view
+        $this->commission->loadMissing(['affiliate.user', 'order.items.course', 'order.user']);
+        
         return new Content(
             view: 'emails.affiliate.new-commission',
             with: [

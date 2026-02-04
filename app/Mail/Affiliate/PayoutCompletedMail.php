@@ -19,7 +19,10 @@ class PayoutCompletedMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public AffiliatePayout $payout
-    ) {}
+    ) {
+        // Load relationships needed for email
+        $this->payout->loadMissing(['affiliate.user']);
+    }
 
     /**
      * Get the message envelope.
@@ -36,6 +39,9 @@ class PayoutCompletedMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Ensure relationships are loaded for the view
+        $this->payout->loadMissing(['affiliate.user']);
+        
         return new Content(
             view: 'emails.affiliate.payout-completed',
             with: [

@@ -19,7 +19,10 @@ class OrderCreatedMail extends Mailable implements ShouldQueue
      */
     public function __construct(
         public Order $order
-    ) {}
+    ) {
+        // Load relationships needed for email
+        $this->order->loadMissing(['user', 'items.course']);
+    }
 
     /**
      * Get the message envelope.
@@ -36,6 +39,9 @@ class OrderCreatedMail extends Mailable implements ShouldQueue
      */
     public function content(): Content
     {
+        // Ensure relationships are loaded for the view
+        $this->order->loadMissing(['user', 'items.course', 'coupon']);
+        
         return new Content(
             view: 'emails.order.created',
             with: [
