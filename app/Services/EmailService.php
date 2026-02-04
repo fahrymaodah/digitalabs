@@ -41,7 +41,7 @@ class EmailService
     public function sendOrderCreatedEmail(Order $order): void
     {
         try {
-            $order->load(['user', 'course', 'coupon']);
+            $order->load(['user', 'items.course', 'coupon']);
             Mail::to($order->user->email)->send(new OrderCreatedMail($order));
             Log::info('Order created email sent', [
                 'order_id' => $order->id,
@@ -61,7 +61,7 @@ class EmailService
     public function sendPaymentSuccessEmail(Order $order): void
     {
         try {
-            $order->load(['user', 'course']);
+            $order->load(['user', 'items.course']);
             Mail::to($order->user->email)->send(new PaymentSuccessMail($order));
             Log::info('Payment success email sent', [
                 'order_id' => $order->id,
@@ -81,7 +81,7 @@ class EmailService
     public function sendPaymentFailedEmail(Order $order, ?string $reason = null): void
     {
         try {
-            $order->load(['user', 'course']);
+            $order->load(['user', 'items.course']);
             Mail::to($order->user->email)->send(new PaymentFailedMail($order, $reason));
             Log::info('Payment failed email sent', [
                 'order_id' => $order->id,

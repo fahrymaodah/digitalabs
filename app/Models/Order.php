@@ -97,6 +97,25 @@ class Order extends Model
         return $this->status === 'expired';
     }
 
+    // ==================== ACCESSORS ====================
+
+    /**
+     * Get the first course from order items (for email templates compatibility)
+     * Since most orders have single item, this provides backward compatibility
+     */
+    public function getCourseAttribute()
+    {
+        return $this->items->first()?->course;
+    }
+
+    /**
+     * Get the original price before discount
+     */
+    public function getOriginalPriceAttribute()
+    {
+        return $this->items->sum('price');
+    }
+
     // ==================== METHODS ====================
 
     /**
