@@ -22,7 +22,7 @@
             Komisi Diterima
         </p>
         <p style="font-size: 36px; font-weight: 700; color: #ffffff; margin: 0;">
-            Rp {{ number_format($commission->amount, 0, ',', '.') }}
+            Rp {{ number_format($commission->commission_amount, 0, ',', '.') }}
         </p>
     </div>
 

@@ -128,10 +128,10 @@ class EmailService
             $totalCommissions = $affiliate->commissions()->count();
             $pendingBalance = $affiliate->commissions()
                 ->where('status', 'pending')
-                ->sum('amount');
+                ->sum('commission_amount');
             $totalEarnings = $affiliate->commissions()
                 ->where('status', 'paid')
-                ->sum('amount');
+                ->sum('commission_amount');
 
             Mail::to($affiliate->user->email)->send(new NewCommissionMail(
                 $commission,
