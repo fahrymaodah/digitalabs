@@ -32,7 +32,7 @@
     {{-- Order Table --}}
     @include('emails.components.order-table', [
         'items' => [
-            ['name' => $order->course->title, 'quantity' => 1, 'price' => $order->original_price]
+            ['name' => $order->items->first()->course->title, 'quantity' => 1, 'price' => $order->original_price]
         ],
         'subtotal' => $order->original_price,
         'discount' => $order->discount_amount ?? 0,
