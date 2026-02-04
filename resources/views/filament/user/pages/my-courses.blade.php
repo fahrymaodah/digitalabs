@@ -44,7 +44,7 @@
                     </p>
 
                     {{-- Action Button --}}
-                    <a href="{{ \App\Filament\User\Pages\Learn::getUrl(['courseSlug' => $item['course']->slug]) }}" 
+                    <a href="{{ url('/dashboard/learn/' . $item['course']->slug) }}" 
                        class="block w-full text-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium transition-colors">
                         @if($item['progress'] == 0)
                             Start Learning

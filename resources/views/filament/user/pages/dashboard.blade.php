@@ -64,7 +64,7 @@
                                 <span class="text-xs text-gray-500 dark:text-gray-400">{{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['watchedSeconds']) }} / {{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['totalDuration']) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> {{ $courseData['completedLessons'] }}/{{ $courseData['totalLessons'] }} lessons</span>
                             </div>
                         </div>
-                        <a href="{{ \App\Filament\User\Pages\Learn::getUrl(['courseSlug' => $courseData['course']->slug]) }}" 
+                        <a href="{{ url('/dashboard/learn/' . $courseData['course']->slug) }}" 
                            class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium whitespace-nowrap">
                             Continue
                         </a>
