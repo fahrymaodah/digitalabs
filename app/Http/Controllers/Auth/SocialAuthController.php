@@ -65,16 +65,24 @@ class SocialAuthController extends Controller
         }
 
         // Login the user with 'user' guard
-        Auth::guard('user')->login($user, true);
+        Auth::guard('user')->login($user);
 
         // Regenerate session untuk prevent CSRF issues
         request()->session()->regenerate();
+        
+        // Log untuk debugging
+        \Log::info('Google OAuth Login', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'has_phone' => !empty($user->phone),
+            'auth_check' => Auth::guard('user')->check(),
+        ]);
 
         // Jika phone belum diisi, redirect ke profile untuk melengkapi info
         if (!$user->phone) {
-            return redirect('/dashboard/profile')->with('message', 'Please complete your profile information');
+            return redirect()->to('/dashboard/profile')->with('message', 'Please complete your profile information');
         }
 
-        return redirect('/dashboard');
+        return redirect()->to('/dashboard');
     }
 }
