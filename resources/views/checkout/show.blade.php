@@ -1,4 +1,7 @@
 <x-layouts.public :title="'Checkout - ' . $course->title">
+    {{-- Toast Notification Container --}}
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
     {{-- Breadcrumb --}}
     <section class="bg-gradient-to-r from-orange-500 to-orange-600">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -65,12 +68,16 @@
                                     <button 
                                         type="button" 
                                         onclick="applyCoupon()"
-                                        class="px-6 py-3 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-xl font-medium transition text-sm"
+                                        id="apply-coupon-btn"
+                                        class="px-6 py-3 bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-xl font-medium transition text-sm flex items-center gap-2"
                                     >
-                                        Terapkan
+                                        <span id="apply-coupon-text">Terapkan</span>
+                                        <svg id="apply-coupon-spinner" class="hidden animate-spin h-4 w-4 text-orange-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
                                     </button>
                                 </div>
-                                <p id="coupon-message" class="mt-2 text-sm hidden"></p>
                             </div>
 
                             {{-- Payment Methods --}}
@@ -355,12 +362,54 @@
             return 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
         }
 
+        // Toast notification function
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const icons = {
+                success: '<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>',
+                error: '<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+                warning: '<svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>'
+            };
+            
+            const colors = {
+                success: 'bg-white border-green-200',
+                error: 'bg-white border-red-200',
+                warning: 'bg-white border-orange-200'
+            };
+            
+            toast.className = `${colors[type]} border shadow-lg rounded-xl p-4 flex items-center gap-3 min-w-[320px] transform transition-all duration-300 translate-x-full opacity-0`;
+            toast.innerHTML = `
+                ${icons[type]}
+                <p class="text-sm text-gray-700 flex-1">${message}</p>
+                <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         function validatePaymentMethod(event) {
             const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
             
             if (!selectedMethod) {
                 event.preventDefault();
-                alert('Silakan pilih metode pembayaran terlebih dahulu!');
+                showToast('Silakan pilih metode pembayaran terlebih dahulu!', 'warning');
                 
                 // Scroll to payment methods section
                 const paymentSection = document.querySelector('input[name="payment_method"]');
@@ -376,22 +425,23 @@
 
         function applyCoupon() {
             const code = document.getElementById('coupon_code').value.trim();
-            const messageEl = document.getElementById('coupon-message');
             const discountRow = document.getElementById('discount-row');
             const discountAmount = document.getElementById('discount-amount');
             const totalEl = document.getElementById('total');
+            const btn = document.getElementById('apply-coupon-btn');
+            const btnText = document.getElementById('apply-coupon-text');
+            const spinner = document.getElementById('apply-coupon-spinner');
 
             if (!code) {
-                messageEl.textContent = 'Masukkan kode kupon terlebih dahulu';
-                messageEl.className = 'mt-2 text-sm text-red-600';
-                messageEl.classList.remove('hidden');
+                showToast('Masukkan kode kupon terlebih dahulu', 'warning');
                 return;
             }
 
-            // Show loading
-            messageEl.textContent = 'Memeriksa kupon...';
-            messageEl.className = 'mt-2 text-sm text-gray-600';
-            messageEl.classList.remove('hidden');
+            // Show loading animation
+            btn.disabled = true;
+            btnText.textContent = 'Memeriksa...';
+            spinner.classList.remove('hidden');
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
 
             fetch('{{ route("checkout.apply-coupon") }}', {
                 method: 'POST',
@@ -413,20 +463,24 @@
                     discountAmount.textContent = '-' + formatRupiah(data.discount);
                     totalEl.textContent = formatRupiah(data.total);
                     
-                    messageEl.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>' + data.message;
-                    messageEl.className = 'mt-2 text-sm text-green-600';
+                    showToast('✓ ' + data.message, 'success');
                 } else {
                     currentDiscount = 0;
                     discountRow.style.display = 'none';
                     totalEl.textContent = formatRupiah(originalPrice);
                     
-                    messageEl.innerHTML = '<svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>' + data.message;
-                    messageEl.className = 'mt-2 text-sm text-red-600';
+                    showToast(data.message, 'error');
                 }
             })
             .catch(error => {
-                messageEl.textContent = 'Terjadi kesalahan. Silakan coba lagi.';
-                messageEl.className = 'mt-2 text-sm text-red-600';
+                showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
+            })
+            .finally(() => {
+                // Reset button state
+                btn.disabled = false;
+                btnText.textContent = 'Terapkan';
+                spinner.classList.add('hidden');
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
             });
         }
     </script>
