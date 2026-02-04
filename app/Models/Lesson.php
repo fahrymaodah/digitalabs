@@ -16,12 +16,14 @@ class Lesson extends Model
         'duration',
         'order',
         'is_free',
+        'is_title_hidden',
     ];
 
     protected $casts = [
         'duration' => 'integer',
         'order' => 'integer',
         'is_free' => 'boolean',
+        'is_title_hidden' => 'boolean',
     ];
 
     // ==================== RELATIONSHIPS ====================

@@ -195,13 +195,33 @@ class CourseResource extends Resource
                                             ->relationship()
                                             ->label('Lessons')
                                             ->schema([
+                                                TextInput::make('title')
+                                                    ->label('Lesson Title')
+                                                    ->required()
+                                                    ->maxLength(255)
+                                                    ->columnSpanFull(),
+
+                                                Textarea::make('description')
+                                                    ->label('Description')
+                                                    ->rows(2)
+                                                    ->columnSpanFull(),
+
+                                                TextInput::make('youtube_url')
+                                                    ->label('YouTube URL')
+                                                    ->required()
+                                                    ->url()
+                                                    ->placeholder('https://youtube.com/watch?v=...')
+                                                    ->columnSpanFull()
+                                                    ->helperText('Video duration will be stored in seconds from YouTube'),
+
                                                 Grid::make(4)
                                                     ->schema([
-                                                        TextInput::make('title')
-                                                            ->label('Lesson Title')
-                                                            ->required()
-                                                            ->maxLength(255)
-                                                            ->columnSpan(2),
+                                                        TextInput::make('duration')
+                                                            ->label('Duration (seconds)')
+                                                            ->numeric()
+                                                            ->minValue(0)
+                                                            ->suffix('sec')
+                                                            ->helperText('In seconds (e.g., 300 = 5 minutes)'),
 
                                                         TextInput::make('order')
                                                             ->label('Order')
@@ -211,22 +231,13 @@ class CourseResource extends Resource
 
                                                         Toggle::make('is_free')
                                                             ->label('Free Preview')
-                                                            ->default(false),
-                                                    ]),
+                                                            ->default(false)
+                                                            ->inline(false),
 
-                                                Grid::make(2)
-                                                    ->schema([
-                                                        TextInput::make('youtube_url')
-                                                            ->label('YouTube URL')
-                                                            ->required()
-                                                            ->url()
-                                                            ->placeholder('https://youtube.com/watch?v=...'),
-
-                                                        TextInput::make('duration')
-                                                            ->label('Duration (minutes)')
-                                                            ->numeric()
-                                                            ->minValue(0)
-                                                            ->suffix('min'),
+                                                        Toggle::make('is_title_hidden')
+                                                            ->label('Hide Title')
+                                                            ->default(false)
+                                                            ->inline(false),
                                                     ]),
                                             ])
                                             ->orderColumn('order')

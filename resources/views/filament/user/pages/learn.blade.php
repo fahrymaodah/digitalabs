@@ -6,27 +6,38 @@
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow sticky top-4">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="font-semibold text-gray-900 dark:text-white">{{ $this->course->title }}</h3>
-                        {{-- Real-time Progress Bar --}}
-                        <div class="mt-3">
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                <div id="sidebar-course-progress-bar" 
-                                     class="bg-amber-500 h-2 rounded-full transition-all duration-300" 
-                                     style="width: {{ $this->getCourseTotalDuration() > 0 ? min(100, round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1)) : 0 }}%"
-                                     data-total-duration="{{ $this->getCourseTotalDuration() }}"></div>
+                        
+                        @if($userOwnsCourse)
+                            {{-- Real-time Progress Bar --}}
+                            <div class="mt-3">
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div id="sidebar-course-progress-bar" 
+                                         class="bg-amber-500 h-2 rounded-full transition-all duration-300" 
+                                         style="width: {{ $this->getCourseTotalDuration() > 0 ? min(100, round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1)) : 0 }}%"
+                                         data-total-duration="{{ $this->getCourseTotalDuration() }}"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span id="sidebar-course-percent" 
+                                          class="text-xs font-medium text-gray-900 dark:text-white"
+                                          data-base-percent="{{ $this->getCourseTotalDuration() > 0 ? round((($this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson)) / $this->getCourseTotalDuration()) * 100, 1) : 0 }}">
+                                        {{ $this->getCourseTotalDuration() > 0 ? round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1) : 0 }}% complete</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                                        <span id="sidebar-course-progress" 
+                                              data-base-duration="{{ $this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson) }}"
+                                              data-total-duration="{{ $this->getCourseTotalDuration() }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseWatchedDuration()) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseTotalDuration()) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> 
+                                        {{ count($this->completedLessonIds) }}/{{ $this->course->lessons()->count() }} lessons
+                                    </span>
+                                </div>
                             </div>
-                            <div class="flex items-center justify-between mt-2">
-                                <span id="sidebar-course-percent" 
-                                      class="text-xs font-medium text-gray-900 dark:text-white"
-                                      data-base-percent="{{ $this->getCourseTotalDuration() > 0 ? round((($this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson)) / $this->getCourseTotalDuration()) * 100, 1) : 0 }}">
-                                    {{ $this->getCourseTotalDuration() > 0 ? round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1) : 0 }}% complete</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">
-                                    <span id="sidebar-course-progress" 
-                                          data-base-duration="{{ $this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson) }}"
-                                          data-total-duration="{{ $this->getCourseTotalDuration() }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseWatchedDuration()) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseTotalDuration()) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> 
-                                    {{ count($this->completedLessonIds) }}/{{ $this->course->lessons()->count() }} lessons
+                        @else
+                            {{-- Free Preview Badge --}}
+                            <div class="mt-3">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                    <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                                    Free Preview
                                 </span>
                             </div>
-                        </div>
+                        @endif
                     </div>
 
                     <div class="max-h-[60vh] overflow-y-auto">
@@ -34,9 +45,11 @@
                             <div class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
                                 <div class="p-4 bg-gray-50 dark:bg-gray-900">
                                     <h4 class="font-medium text-gray-900 dark:text-white text-sm">{{ $topic->title }}</h4>
-                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                                        <span id="sidebar-topic-progress-{{ $topic->id }}" data-base-duration="{{ $this->getTopicWatchedDuration($topic) - $this->getLessonWatchedSeconds($this->currentLesson) }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicWatchedDuration($topic)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicTotalDuration($topic)) }}
-                                    </p>
+                                    @if($userOwnsCourse)
+                                        <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                            <span id="sidebar-topic-progress-{{ $topic->id }}" data-base-duration="{{ $this->getTopicWatchedDuration($topic) - $this->getLessonWatchedSeconds($this->currentLesson) }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicWatchedDuration($topic)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicTotalDuration($topic)) }}
+                                        </p>
+                                    @endif
                                 </div>
                                 <ul>
                                     @foreach($topic->lessons as $lesson)
@@ -54,12 +67,14 @@
                                                     <span class="text-sm block {{ $this->currentLesson && $this->currentLesson->id === $lesson->id ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-gray-700 dark:text-gray-300' }}">
                                                         {{ $lesson->title }}
                                                     </span>
-                                                    @if($lesson->duration)
+                                                    @if($userOwnsCourse && $lesson->duration)
                                                         @if($this->currentLesson && $this->currentLesson->id === $lesson->id)
                                                             <span class="text-xs text-gray-400"><span id="sidebar-lesson-progress">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getLessonWatchedSeconds($lesson)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
                                                         @else
                                                             <span class="text-xs text-gray-400">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getLessonWatchedSeconds($lesson)) }} / {{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
                                                         @endif
+                                                    @elseif(!$userOwnsCourse && $lesson->duration)
+                                                        <span class="text-xs text-gray-400">{{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
                                                     @endif
                                                 </div>
                                             </button>
@@ -100,10 +115,15 @@
                                 <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                                     {{ $this->currentLesson->title }}
                                 </h2>
-                                @if($this->currentLesson->duration !== null)
+                                @if($userOwnsCourse && $this->currentLesson->duration !== null)
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                         <x-heroicon-o-clock class="w-4 h-4 inline mr-1" />
                                         <span id="current-lesson-progress">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getLessonWatchedSeconds($this->currentLesson)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->currentLesson->duration) }}
+                                    </p>
+                                @elseif(!$userOwnsCourse && $this->currentLesson->duration !== null)
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        <x-heroicon-o-clock class="w-4 h-4 inline mr-1" />
+                                        {{ \App\Filament\User\Pages\Learn::formatDuration($this->currentLesson->duration) }}
                                     </p>
                                 @endif
                             </div>
@@ -116,35 +136,50 @@
                         @endif
 
                         {{-- Actions --}}
-                        <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <button 
-                                wire:click="goToPreviousLesson"
-                                class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-sm">
-                                <x-heroicon-o-chevron-left class="w-4 h-4 mr-1" />
-                                Previous
-                            </button>
-
-                            @if(!in_array($this->currentLesson->id, $this->completedLessonIds))
+                        @if($userOwnsCourse)
+                            <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button 
-                                    wire:click="markAsComplete"
-                                    class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm">
-                                    <x-heroicon-o-check class="w-4 h-4 mr-1" />
-                                    Mark as Complete
+                                    wire:click="goToPreviousLesson"
+                                    class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-sm">
+                                    <x-heroicon-o-chevron-left class="w-4 h-4 mr-1" />
+                                    Previous
                                 </button>
-                            @else
-                                <span class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg font-medium text-sm">
-                                    <x-heroicon-s-check-circle class="w-4 h-4 mr-1" />
-                                    Completed
-                                </span>
-                            @endif
 
-                            <button 
-                                wire:click="goToNextLesson"
-                                class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm">
-                                Next
-                                <x-heroicon-o-chevron-right class="w-4 h-4 ml-1" />
-                            </button>
-                        </div>
+                                @if(!in_array($this->currentLesson->id, $this->completedLessonIds))
+                                    <button 
+                                        wire:click="markAsComplete"
+                                        class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm">
+                                        <x-heroicon-o-check class="w-4 h-4 mr-1" />
+                                        Mark as Complete
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg font-medium text-sm">
+                                        <x-heroicon-s-check-circle class="w-4 h-4 mr-1" />
+                                        Completed
+                                    </span>
+                                @endif
+
+                                <button 
+                                    wire:click="goToNextLesson"
+                                    class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm">
+                                    Next
+                                    <x-heroicon-o-chevron-right class="w-4 h-4 ml-1" />
+                                </button>
+                            </div>
+                        @else
+                            {{-- Free Preview - Show "Purchase Course" CTA --}}
+                            <div class="flex flex-col gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    <x-heroicon-o-information-circle class="w-5 h-5 inline mr-1" />
+                                    You're watching a free preview lesson. Purchase the course to access all lessons and track your progress.
+                                </p>
+                                <a href="{{ route('courses.show', $this->course->slug) }}" 
+                                   class="inline-flex items-center justify-center px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm">
+                                    <x-heroicon-o-shopping-cart class="w-5 h-5 mr-2" />
+                                    Purchase Course
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

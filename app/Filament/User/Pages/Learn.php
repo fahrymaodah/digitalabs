@@ -10,16 +10,16 @@ use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Computed;
 
 class Learn extends Page
 {
     protected static string | \BackedEnum | null $navigationIcon = 'heroicon-o-play-circle';
     protected static ?string $navigationLabel = 'Learn';
     protected static bool $shouldRegisterNavigation = false;
-    protected static ?string $slug = 'learn/{courseSlug}/{lessonId?}';
+    protected static ?string $slug = 'learn/{courseSlug}';
     protected string $view = 'filament.user.pages.learn';
 
-    #[Url]
     public string $courseSlug = '';
     
     #[Url]
@@ -27,12 +27,36 @@ class Learn extends Page
 
     public ?Course $course = null;
     public ?Lesson $currentLesson = null;
-    public $topics = [];
     public $completedLessonIds = [];
+    public bool $userOwnsCourse = false;
 
     public function mount(): void
     {
         $this->loadCourseData();
+    }
+    
+    /**
+     * Computed property for topics - ALWAYS returns correct filtered data
+     * This ensures sidebar NEVER shows paid lessons for free preview users
+     */
+    #[Computed]
+    public function topics()
+    {
+        if (!$this->course) {
+            return collect([]);
+        }
+        
+        // If user owns course, return all lessons
+        if ($this->userOwnsCourse) {
+            return $this->course->topics()->with(['lessons' => function ($query) {
+                $query->orderBy('order');
+            }])->orderBy('order')->get();
+        }
+        
+        // Free preview - only return free lessons
+        return $this->course->topics()->with(['lessons' => function ($query) {
+            $query->where('is_free', true)->orderBy('order');
+        }])->orderBy('order')->get();
     }
 
     #[On('updated-course-slug')]
@@ -52,14 +76,27 @@ class Learn extends Page
             ->where('course_id', $this->course->id)
             ->exists();
 
+        $this->userOwnsCourse = $hasAccess;
+
+        // If user doesn't own the course, check if accessing free preview lesson
         if (!$hasAccess) {
-            abort(403, 'You do not have access to this course.');
+            // If lessonId is provided, check if it's a free lesson
+            if ($this->lessonId) {
+                $lesson = Lesson::find($this->lessonId);
+                if (!$lesson || !$lesson->is_free) {
+                    abort(403, 'You do not have access to this course. Please purchase the course to continue.');
+                }
+                // Allow access to this free lesson only
+                $this->currentLesson = $lesson;
+                // Free preview users don't track progress
+                $this->completedLessonIds = [];
+                return;
+            } else {
+                abort(403, 'You do not have access to this course. Please purchase the course to continue.');
+            }
         }
 
-        // Load topics with lessons
-        $this->topics = $this->course->topics()->with('lessons')->orderBy('order')->get();
-
-        // Get completed lesson IDs
+        // Get completed lesson IDs for course owners only
         $this->completedLessonIds = LessonProgress::where('user_id', $user->id)
             ->whereHas('lesson.topic', function ($q) {
                 $q->where('course_id', $this->course->id);
@@ -73,7 +110,8 @@ class Learn extends Page
             $this->currentLesson = Lesson::find($this->lessonId);
         } else {
             // Find first uncompleted lesson or first lesson
-            foreach ($this->topics as $topic) {
+            $topics = $this->topics; // Use computed property
+            foreach ($topics as $topic) {
                 foreach ($topic->lessons as $lesson) {
                     if (!in_array($lesson->id, $this->completedLessonIds)) {
                         $this->currentLesson = $lesson;
@@ -82,16 +120,32 @@ class Learn extends Page
                 }
             }
             // If all completed, show first lesson
-            if (!$this->currentLesson && $this->topics->count() > 0) {
-                $this->currentLesson = $this->topics->first()->lessons->first();
+            if (!$this->currentLesson && $topics->count() > 0) {
+                $this->currentLesson = $topics->first()->lessons->first();
             }
         }
     }
 
     public function selectLesson(int $lessonId): void
     {
-        $this->currentLesson = Lesson::find($lessonId);
+        $lesson = Lesson::find($lessonId);
+        
+        if (!$lesson) {
+            $this->dispatch('error', message: 'Lesson not found.');
+            return;
+        }
+        
+        // If user doesn't own course, only allow free lessons
+        if (!$this->userOwnsCourse && !$lesson->is_free) {
+            $this->dispatch('error', message: 'This lesson is only available after purchasing the course.');
+            return;
+        }
+        
+        $this->currentLesson = $lesson;
         $this->lessonId = $lessonId;
+        
+        // Topics are now computed property - no need to set manually
+        // It will automatically filter based on userOwnsCourse
         
         // Only dispatch event if there's a video for this lesson
         $videoId = $this->getYoutubeVideoId();
@@ -106,6 +160,9 @@ class Learn extends Page
     public function saveProgress(int $watchedSeconds): void
     {
         if (!$this->currentLesson) return;
+        
+        // Only save progress if user owns the course
+        if (!$this->userOwnsCourse) return;
 
         $user = Auth::user();
 
@@ -126,6 +183,9 @@ class Learn extends Page
      */
     public function saveProgressWithLesson(int $lessonId, int $watchedSeconds): void
     {
+        // Only save progress if user owns the course
+        if (!$this->userOwnsCourse) return;
+        
         $user = Auth::user();
 
         LessonProgress::updateOrCreate(
@@ -142,6 +202,9 @@ class Learn extends Page
     public function markAsComplete(): void
     {
         if (!$this->currentLesson) return;
+        
+        // Only allow marking complete if user owns the course
+        if (!$this->userOwnsCourse) return;
 
         $user = Auth::user();
 
@@ -170,6 +233,9 @@ class Learn extends Page
 
     public function goToNextLesson(): void
     {
+        // Only allow navigation if user owns the course
+        if (!$this->userOwnsCourse) return;
+        
         $foundCurrent = false;
         foreach ($this->topics as $topic) {
             foreach ($topic->lessons as $lesson) {
@@ -187,6 +253,9 @@ class Learn extends Page
 
     public function goToPreviousLesson(): void
     {
+        // Only allow navigation if user owns the course
+        if (!$this->userOwnsCourse) return;
+        
         $previousLesson = null;
         foreach ($this->topics as $topic) {
             foreach ($topic->lessons as $lesson) {

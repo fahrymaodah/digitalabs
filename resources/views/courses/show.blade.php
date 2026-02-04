@@ -180,25 +180,46 @@
                                     <div x-show="openTopic === {{ $index + 1 }}" x-transition.opacity.duration.200ms>
                                         <ul class="divide-y divide-gray-100">
                                             @foreach($topic->lessons as $lessonIndex => $lesson)
-                                            <li class="flex items-center justify-between p-4 hover:bg-gray-50">
-                                                <div class="flex items-center">
-                                                    @if($userOwns || $lesson->is_preview)
-                                                        <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <li class="flex items-center justify-between p-4 hover:bg-gray-50 transition group">
+                                                <div class="flex items-center flex-1">
+                                                    @if($userOwns || $lesson->is_free)
+                                                        <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                                         </svg>
                                                     @else
-                                                        <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
                                                         </svg>
                                                     @endif
-                                                    <span class="text-gray-700">{{ $lesson->title }}</span>
-                                                    @if($lesson->is_preview)
-                                                        <span class="ml-2 px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded">Preview</span>
-                                                    @endif
+                                                    
+                                                    <div class="flex items-center gap-2 flex-1">
+                                                        @if($lesson->is_free)
+                                                            <a href="{{ url('/dashboard/learn/' . $course->slug . '?lessonId=' . $lesson->id) }}" 
+                                                               class="text-gray-700 hover:text-orange-600 transition {{ $lesson->is_title_hidden ? '' : 'font-medium' }}">
+                                                                @if($lesson->is_title_hidden)
+                                                                    {{ $topic->title }} - {{ str_pad($lessonIndex + 1, 2, '0', STR_PAD_LEFT) }}
+                                                                @else
+                                                                    {{ $lesson->title }}
+                                                                @endif
+                                                            </a>
+                                                        @else
+                                                            <span class="text-gray-700 {{ $lesson->is_title_hidden ? '' : 'font-medium' }}">
+                                                                @if($lesson->is_title_hidden)
+                                                                    {{ $topic->title }} - {{ str_pad($lessonIndex + 1, 2, '0', STR_PAD_LEFT) }}
+                                                                @else
+                                                                    {{ $lesson->title }}
+                                                                @endif
+                                                            </span>
+                                                        @endif
+                                                        
+                                                        @if($lesson->is_free)
+                                                            <span class="px-2 py-0.5 bg-green-100 text-green-600 text-xs rounded font-medium">Free Preview</span>
+                                                        @endif
+                                                    </div>
                                                 </div>
-                                                @if($lesson->duration)
-                                                <span class="text-sm text-gray-500">{{ floor($lesson->duration / 3600) }}:{{ str_pad(floor(($lesson->duration % 3600) / 60), 2, '0', STR_PAD_LEFT) }}:{{ str_pad($lesson->duration % 60, 2, '0', STR_PAD_LEFT) }}</span>
+                                                @if($lesson->duration && !$lesson->is_title_hidden)
+                                                <span class="text-sm text-gray-500 ml-4">{{ floor($lesson->duration / 3600) }}:{{ str_pad(floor(($lesson->duration % 3600) / 60), 2, '0', STR_PAD_LEFT) }}:{{ str_pad($lesson->duration % 60, 2, '0', STR_PAD_LEFT) }}</span>
                                                 @endif
                                             </li>
                                             @endforeach
