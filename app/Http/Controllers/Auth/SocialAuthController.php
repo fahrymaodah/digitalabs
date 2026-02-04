@@ -67,11 +67,14 @@ class SocialAuthController extends Controller
         // Login the user with 'user' guard
         Auth::guard('user')->login($user, true);
 
+        // Regenerate session untuk prevent CSRF issues
+        request()->session()->regenerate();
+
         // Jika phone belum diisi, redirect ke profile untuk melengkapi info
         if (!$user->phone) {
             return redirect('/dashboard/profile')->with('message', 'Please complete your profile information');
         }
 
-        return redirect()->intended('/dashboard');
+        return redirect('/dashboard');
     }
 }

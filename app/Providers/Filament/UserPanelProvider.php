@@ -32,6 +32,7 @@ class UserPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->passwordReset()
+            ->homeUrl('/')
             ->brandName('Digitalabs')
             ->brandLogo(asset('images/digitalabs-banner-dark.png'))
             ->darkModeBrandLogo(asset('images/digitalabs-banner-light.png'))
