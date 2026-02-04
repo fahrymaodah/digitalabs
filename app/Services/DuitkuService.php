@@ -14,12 +14,58 @@ class DuitkuService
     protected bool $sandbox;
     protected array $endpoints;
 
+    /**
+     * Payment method code to name mapping (from Duitku API)
+     */
+    protected array $paymentMethodNames = [
+        // Virtual Account
+        'VA' => 'Maybank VA',
+        'I1' => 'BNI VA',
+        'B1' => 'CIMB Niaga VA',
+        'BT' => 'Permata VA',
+        'A1' => 'ATM Bersama VA',
+        'AG' => 'Artha Graha VA',
+        'NC' => 'BNC VA',
+        'BR' => 'BRI VA',
+        'BC' => 'BCA VA',
+        'M2' => 'Mandiri VA H2H',
+        'BV' => 'BSI VA',
+        // E-wallet
+        'OV' => 'OVO',
+        'SA' => 'ShopeePay App',
+        'SL' => 'ShopeePay Link',
+        'LA' => 'LinkAja App PCT',
+        'DA' => 'DANA',
+        'OL' => 'OVO Link',
+        'JP' => 'Jenius Pay',
+        // Paylater
+        'DN' => 'Indodana Paylater',
+        // QRIS
+        'SP' => 'ShopeePay QRIS',
+        'LQ' => 'LinkAja QRIS',
+        'NQ' => 'Nobu QRIS',
+        'GQ' => 'Gudang Voucher QRIS',
+        // Credit Card
+        'VC' => 'Credit Card',
+        // Retail
+        'FT' => 'Retail',
+        'IR' => 'Indomaret',
+    ];
+
     public function __construct()
     {
         $this->merchantCode = config('duitku.merchant_code');
         $this->apiKey = config('duitku.api_key');
         $this->sandbox = config('duitku.sandbox', true);
         $this->endpoints = config('duitku.endpoints.' . ($this->sandbox ? 'sandbox' : 'production'));
+    }
+
+    /**
+     * Get readable payment method name from code
+     */
+    public function getPaymentMethodName(string $code): string
+    {
+        return $this->paymentMethodNames[$code] ?? $code;
     }
 
     /**
@@ -134,8 +180,9 @@ class DuitkuService
 
                 if (isset($data['paymentUrl'])) {
                     // Update order with Duitku reference
+                    // Store readable payment method name instead of code
                     $order->update([
-                        'payment_method' => $paymentMethod,
+                        'payment_method' => $this->getPaymentMethodName($paymentMethod),
                         'duitku_reference' => $data['reference'] ?? null,
                         'duitku_payment_url' => $data['paymentUrl'],
                         'duitku_response' => $data,
