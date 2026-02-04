@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\EmailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -62,6 +63,16 @@ class SocialAuthController extends Controller
                 'password' => Hash::make(Str::random(24)), // Random password
                 'email_verified_at' => now(), // Auto-verify email from Google
             ]);
+
+            // Send welcome email for new Google users
+            try {
+                app(EmailService::class)->sendWelcomeEmail($user);
+            } catch (\Exception $e) {
+                \Log::error('Failed to send welcome email for Google user', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+            }
         }
 
         // Login the user with 'user' guard

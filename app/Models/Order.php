@@ -109,11 +109,27 @@ class Order extends Model
     }
 
     /**
-     * Get the original price before discount
+     * Get the original price before discount (subtotal)
      */
     public function getOriginalPriceAttribute()
     {
-        return $this->items->sum('price');
+        return $this->subtotal ?? $this->items->sum('price');
+    }
+
+    /**
+     * Get the discount amount (for email templates)
+     */
+    public function getDiscountAmountAttribute()
+    {
+        return $this->discount ?? 0;
+    }
+
+    /**
+     * Get the total price after discount (for email templates)
+     */
+    public function getTotalPriceAttribute()
+    {
+        return $this->total ?? 0;
     }
 
     // ==================== METHODS ====================
