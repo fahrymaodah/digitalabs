@@ -3,7 +3,7 @@
 
 ## Daftar Yang Dibutuhkan
 
-Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **digitalabs@gmail.com**:
+Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **digitalabsindonesia@gmail.com**:
 
 1. ✅ Gmail SMTP (App Password)
 2. ✅ Google OAuth 2.0 Credentials
@@ -14,7 +14,7 @@ Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **d
 ## 1. Gmail SMTP Configuration
 
 ### Yang Dibutuhkan:
-- `MAIL_USERNAME` = digitalabs@gmail.com
+- `MAIL_USERNAME` = digitalabsindonesia@gmail.com
 - `MAIL_PASSWORD` = App Password (16 karakter tanpa spasi)
 
 ### Langkah-Langkah Mendapatkan App Password:
@@ -35,7 +35,7 @@ Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **d
 5. Mungkin diminta login ulang untuk verifikasi
 6. Pada dropdown **"Select app"**, pilih **"Mail"**
 7. Pada dropdown **"Select device"**, pilih **"Other (Custom name)"**
-8. Ketik nama: **"Digitalabs Application"**
+8. Ketik nama: **"Digitalabs Indonesia Application"**
 9. Klik **"Generate"**
 10. Google akan menampilkan 16 karakter password (format: xxxx xxxx xxxx xxxx)
 11. ⚠️ **COPY SEGERA!** Password ini hanya ditampilkan sekali
@@ -289,7 +289,7 @@ ANALYTICS_SERVICE_ACCOUNT_CREDENTIALS_JSON=storage/app/analytics/service-account
 Setelah selesai semua, client perlu mengirimkan:
 
 ### 1. Gmail SMTP
-- [ ] `MAIL_USERNAME` = digitalabs@gmail.com
+- [ ] `MAIL_USERNAME` = digitalabsindonesia@gmail.com
 - [ ] `MAIL_PASSWORD` = (16 karakter App Password tanpa spasi)
 
 ### 2. Google OAuth
@@ -311,7 +311,7 @@ Minta client mengirimkan dalam format ini untuk memudahkan:
 
 ```
 === GMAIL SMTP ===
-MAIL_USERNAME=digitalabs@gmail.com
+MAIL_USERNAME=digitalabsindonesia@gmail.com
 MAIL_PASSWORD=abcdefghijklmnop
 
 === GOOGLE OAUTH ===
