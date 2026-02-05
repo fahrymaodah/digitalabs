@@ -1,5 +1,5 @@
 # Panduan Setup Credential untuk Client
-**Email Client:** digitalabs@gmail.com
+**Email Client:** digitalabsindonesia@gmail.com
 
 ## Daftar Yang Dibutuhkan
 
@@ -21,7 +21,7 @@ Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **d
 
 #### Step 1: Aktifkan 2-Step Verification
 1. Buka [https://myaccount.google.com/security](https://myaccount.google.com/security)
-2. Login dengan **digitalabs@gmail.com**
+2. Login dengan **digitalabsindonesia@gmail.com**
 3. Cari section **"How you sign in to Google"**
 4. Klik **"2-Step Verification"**
 5. Ikuti instruksi untuk mengaktifkan (jika belum aktif)
@@ -46,7 +46,7 @@ Bisa test kirim email test dari aplikasi setelah credential dimasukkan.
 
 ### Credential yang Perlu Diberikan:
 ```env
-MAIL_USERNAME=digitalabs@gmail.com
+MAIL_USERNAME=digitalabsindonesia@gmail.com
 MAIL_PASSWORD=abcdefghijklmnop
 ```
 
@@ -63,19 +63,19 @@ MAIL_PASSWORD=abcdefghijklmnop
 
 #### Step 1: Buka Google Cloud Console
 1. Buka [https://console.cloud.google.com](https://console.cloud.google.com)
-2. Login dengan **digitalabs@gmail.com**
+2. Login dengan **digitalabsindonesia@gmail.com**
 3. Jika pertama kali, akan ada prompt untuk accept Terms of Service
 
 #### Step 2: Buat Project Baru
 1. Klik dropdown project di pojok kiri atas (sebelah logo Google Cloud)
 2. Klik **"NEW PROJECT"**
 3. Isi detail project:
-   - **Project name:** Digitalabs Application
+   - **Project name:** Digitalabs Indonesia Application
    - **Organization:** (biarkan No organization)
    - **Location:** (biarkan default)
 4. Klik **"CREATE"**
 5. Tunggu beberapa detik sampai project selesai dibuat
-6. Pastikan project **"Digitalabs Application"** sudah terpilih (lihat di dropdown pojok kiri atas)
+6. Pastikan project **"Digitalabs Indonesia Application"** sudah terpilih (lihat di dropdown pojok kiri atas)
 
 #### Step 3: Enable Google+ API (untuk OAuth)
 1. Di sidebar kiri, klik **"APIs & Services"** → **"Library"**
@@ -91,12 +91,12 @@ MAIL_PASSWORD=abcdefghijklmnop
 3. Pilih **"External"** (untuk user umum bisa login)
 4. Klik **"CREATE"**
 5. Isi form OAuth consent screen:
-   - **App name:** Digitalabs
-   - **User support email:** digitalabs@gmail.com
+   - **App name:** Digitalabs Indonesia
+   - **User support email:** digitalabsindonesia@gmail.com
    - **App logo:** (opsional, bisa upload logo nanti)
    - **Application home page:** https://digitalabs.id (atau domain yang dipakai)
    - **Authorized domains:** digitalabs.id (tanpa https://)
-   - **Developer contact information:** digitalabs@gmail.com
+   - **Developer contact information:** digitalabsindonesia@gmail.com
 6. Klik **"SAVE AND CONTINUE"**
 7. Di halaman **"Scopes"**, klik **"ADD OR REMOVE SCOPES"**
 8. Cari dan centang:
@@ -115,7 +115,7 @@ MAIL_PASSWORD=abcdefghijklmnop
 5. Jika diminta "Configure consent screen", berarti Step 4 belum selesai
 6. Isi form Create OAuth client ID:
    - **Application type:** Web application
-   - **Name:** Digitalabs Web Client
+   - **Name:** Digitalabs Indonesia Web Client
    - **Authorized JavaScript origins:**
      - http://localhost (untuk development)
      - https://digitalabs.id (untuk production)
@@ -152,20 +152,20 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 
 #### Step 1: Buat GA4 Property
 1. Buka [https://analytics.google.com](https://analytics.google.com)
-2. Login dengan **digitalabs@gmail.com**
+2. Login dengan **digitalabsindonesia@gmail.com**
 3. Jika belum ada account, klik **"Start measuring"**
 4. Jika sudah ada account, klik **"Admin"** (icon gear di pojok kiri bawah)
 
 #### Step 2: Create Account (jika belum ada)
 1. Klik **"Create Account"**
 2. Isi detail:
-   - **Account name:** Digitalabs
+   - **Account name:** Digitalabs Indonesia
    - Centang semua checkbox untuk data sharing settings (recommended)
 3. Klik **"Next"**
 
 #### Step 3: Create Property
 1. Isi detail property:
-   - **Property name:** Digitalabs Website
+   - **Property name:** Digitalabs Indonesia Website
    - **Reporting time zone:** (GMT+07:00) Jakarta
    - **Currency:** Indonesian Rupiah (IDR)
 2. Klik **"Next"**
@@ -201,15 +201,15 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 
 #### Step 6: Buat Service Account (untuk API Access)
 1. Buka Google Cloud Console: [https://console.cloud.google.com](https://console.cloud.google.com)
-2. Login dengan **digitalabs@gmail.com**
-3. Pastikan project **"Digitalabs Application"** terpilih (atau buat baru jika perlu)
+2. Login dengan **digitalabsindonesia@gmail.com**
+3. Pastikan project **"Digitalabs Indonesia Application"** terpilih (atau buat baru jika perlu)
 4. Di sidebar kiri, klik **"IAM & Admin"** → **"Service Accounts"**
 5. Atau buka: [https://console.cloud.google.com/iam-admin/serviceaccounts](https://console.cloud.google.com/iam-admin/serviceaccounts)
 
 #### Step 7: Create Service Account
 1. Klik **"+ CREATE SERVICE ACCOUNT"** di bagian atas
 2. Isi detail:
-   - **Service account name:** Digitalabs Analytics
+   - **Service account name:** Digitalabs Indonesia Analytics
    - **Service account ID:** digitalabs-analytics (otomatis terisi)
    - **Description:** Service account for Google Analytics API access
 3. Klik **"CREATE AND CONTINUE"**
@@ -253,7 +253,7 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 
 #### Step 11: Install Tracking Code (GA4 Tag) di Website
 1. Masih di Google Analytics, klik **"Admin"** → **"Data Streams"**
-2. Klik pada stream yang sudah dibuat (Digitalabs Website)
+4. Klik pada stream yang sudah dibuat (Digitalabs Indonesia Website)
 3. Scroll ke bawah, klik **"View tag instructions"**
 4. Copy kode tracking yang ditampilkan:
 
@@ -388,6 +388,6 @@ Attachment:
 Jika ada kesulitan atau pertanyaan saat setup, hubungi developer dengan informasi:
 - Screenshot error message
 - Step mana yang stuck
-- Email yang digunakan (digitalabs@gmail.com)
+- Email yang digunakan (digitalabsindonesia@gmail.com)
 
 Dokumentasi ini berlaku per **Februari 2026**. Interface Google mungkin berubah, tapi konsep dasarnya sama.
