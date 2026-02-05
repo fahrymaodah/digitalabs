@@ -3,6 +3,10 @@
 
 ## Daftar Yang Dibutuhkan
 
+⏱️ **Estimasi Waktu:** 30-45 menit untuk setup semua credential
+
+⚠️ **PENTING:** Pastikan Anda login menggunakan email **digitalabsindonesia@gmail.com** di semua langkah!
+
 Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **digitalabsindonesia@gmail.com**:
 
 1. ✅ Gmail SMTP (App Password)
@@ -30,16 +34,16 @@ Berikut adalah credential yang perlu disiapkan oleh client dengan akun email **d
 #### Step 2: Generate App Password
 1. Setelah 2-Step Verification aktif, kembali ke [https://myaccount.google.com/security](https://myaccount.google.com/security)
 2. Cari section **"2-Step Verification"**
-3. Scroll ke bawah, cari **"App passwords"** atau **"App-specific passwords"**
+3. Scroll ke bawah, cari **"App passwords"**
 4. Klik **"App passwords"**
 5. Mungkin diminta login ulang untuk verifikasi
-6. Pada dropdown **"Select app"**, pilih **"Mail"**
-7. Pada dropdown **"Select device"**, pilih **"Other (Custom name)"**
-8. Ketik nama: **"Digitalabs Indonesia Application"**
-9. Klik **"Generate"**
-10. Google akan menampilkan 16 karakter password (format: xxxx xxxx xxxx xxxx)
-11. ⚠️ **COPY SEGERA!** Password ini hanya ditampilkan sekali
-12. Hapus semua spasi, contoh: `abcd efgh ijkl mnop` → `abcdefghijklmnop`
+6. Akan muncul halaman untuk buat App Password baru
+7. Di field **"App name"**, ketik: **"Digitalabs Indonesia Application"**
+8. Klik **"Create"** atau **"Generate"**
+9. Google akan menampilkan 16 karakter password (format: xxxx xxxx xxxx xxxx)
+10. ⚠️ **COPY SEGERA!** Password ini hanya ditampilkan sekali
+11. Klik **"Done"** setelah copy
+12. Hapus semua spasi dari password, contoh: `abcd efgh ijkl mnop` → `abcdefghijklmnop`
 
 #### Step 3: Test SMTP (Opsional)
 Bisa test kirim email test dari aplikasi setelah credential dimasukkan.
@@ -77,13 +81,15 @@ MAIL_PASSWORD=abcdefghijklmnop
 5. Tunggu beberapa detik sampai project selesai dibuat
 6. Pastikan project **"Digitalabs Indonesia Application"** sudah terpilih (lihat di dropdown pojok kiri atas)
 
-#### Step 3: Enable Google+ API (untuk OAuth)
+#### Step 3: Enable People API (untuk OAuth)
 1. Di sidebar kiri, klik **"APIs & Services"** → **"Library"**
 2. Atau buka langsung: [https://console.cloud.google.com/apis/library](https://console.cloud.google.com/apis/library)
-3. Cari **"Google+ API"** atau **"People API"**
-4. Klik pada API tersebut
+3. Ketik di search box: **"People API"**
+4. Klik pada **"Google People API"**
 5. Klik **"ENABLE"**
-6. Tunggu sampai selesai
+6. Tunggu beberapa detik sampai selesai
+
+💡 **Note:** API ini diperlukan untuk mendapatkan informasi profil user (nama, email, foto) saat login dengan Google.
 
 #### Step 4: Configure OAuth Consent Screen
 1. Di sidebar kiri, klik **"APIs & Services"** → **"OAuth consent screen"**
@@ -139,14 +145,25 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 
 ⚠️ **CATATAN:** `GOOGLE_REDIRECT_URI` harus sesuai dengan domain production yang akan digunakan!
 
+### 💡 Tips untuk Pengguna Awam:
+- **Client ID & Client Secret** adalah seperti username dan password untuk aplikasi
+- **JANGAN BAGIKAN** Client Secret ke orang lain
+- Client ID boleh terlihat di browser, tapi Client Secret harus tetap rahasia
+- Jika lupa/hilang, bisa download lagi dari Google Cloud Console → Credentials
+
 ---
 
 ## 3. Google Analytics 4 Setup
 
 ### Yang Dibutuhkan:
-- `ANALYTICS_PROPERTY_ID` (angka 9 digit, contoh: 523322030)
-- `ANALYTICS_MEASUREMENT_ID` (format: G-XXXXXXXXXX)
-- `ANALYTICS_SERVICE_ACCOUNT_CREDENTIALS_JSON` (file JSON)
+- `ANALYTICS_PROPERTY_ID` (angka 9 digit, contoh: 523322030) - untuk API read data
+- `ANALYTICS_MEASUREMENT_ID` (format: G-XXXXXXXXXX) - untuk tracking code di website
+- `ANALYTICS_SERVICE_ACCOUNT_CREDENTIALS_JSON` (file JSON) - credentials untuk akses API
+
+💡 **Penjelasan Sederhana:**
+- **Property ID & Measurement ID** = alamat tempat data analytics disimpan
+- **Service Account** = "robot" yang bisa baca data analytics untuk ditampilkan di dashboard admin
+- **Tracking Code** = kode JavaScript yang merekam aktivitas pengunjung website
 
 ### Langkah-Langkah Setup Google Analytics 4:
 
@@ -186,7 +203,7 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 2. Pilih platform **"Web"**
 3. Isi detail:
    - **Website URL:** https://digitalabs.id
-   - **Stream name:** Digitalabs Website
+   - **Stream name:** Digitalabs Indonesia Website
    - Enhanced measurement biarkan ON (recommended)
 4. Klik **"Create stream"**
 5. Setelah stream dibuat, akan muncul detail:
@@ -210,7 +227,7 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 1. Klik **"+ CREATE SERVICE ACCOUNT"** di bagian atas
 2. Isi detail:
    - **Service account name:** Digitalabs Indonesia Analytics
-   - **Service account ID:** digitalabs-analytics (otomatis terisi)
+   - **Service account ID:** digitalabs-indonesia-analytics (otomatis terisi, bisa edit jika perlu)
    - **Description:** Service account for Google Analytics API access
 3. Klik **"CREATE AND CONTINUE"**
 4. Di **"Grant this service account access to project"**:
@@ -222,7 +239,9 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 
 #### Step 8: Generate Service Account Key (JSON)
 1. Di halaman Service Accounts, akan muncul service account yang baru dibuat
-2. Klik pada email service account (format: digitalabs-analytics@project-id.iam.gserviceaccount.com)
+2. Klik pada email service account (format: digitalabs-indonesia-analytics@project-id.iam.gserviceaccount.com)
+
+   💡 **Tips:** Email service account akan otomatis dibuat dengan format [service-account-id]@[project-id].iam.gserviceaccount.com
 3. Klik tab **"KEYS"**
 4. Klik **"ADD KEY"** → **"Create new key"**
 5. Pilih **"JSON"**
@@ -245,17 +264,19 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 3. Di kolom **"Property"**, klik **"Property Access Management"**
 4. Klik **"+"** (Add users) di pojok kanan atas
 5. Isi detail:
-   - **Email address:** Paste email service account dari Step 8 (format: digitalabs-analytics@project-id.iam.gserviceaccount.com)
+   - **Email address:** Paste email service account dari Step 8 (format: digitalabs-indonesia-analytics@project-id.iam.gserviceaccount.com)
    - **Role:** pilih **"Viewer"** (cukup untuk read data)
+   
+   💡 **Tips:** Copy email service account dari halaman Service Accounts di Google Cloud Console
    - Centang **"Notify this user by email"** (opsional)
 6. Klik **"Add"**
 7. Service account sekarang punya akses untuk baca data GA4
 
 #### Step 11: Install Tracking Code (GA4 Tag) di Website
 1. Masih di Google Analytics, klik **"Admin"** → **"Data Streams"**
-4. Klik pada stream yang sudah dibuat (Digitalabs Indonesia Website)
-3. Scroll ke bawah, klik **"View tag instructions"**
-4. Copy kode tracking yang ditampilkan:
+2. Klik pada stream yang sudah dibuat (Digitalabs Indonesia Website)
+3. Scroll ke bawah, cari dan klik **"View tag instructions"** atau **"Tagging instructions"**
+4. Copy kode tracking yang ditampilkan (akan muncul di modal/popup):
 
 ```html
 <!-- Google tag (gtag.js) -->
@@ -268,9 +289,13 @@ GOOGLE_REDIRECT_URI=https://digitalabs.id/auth/google/callback
 </script>
 ```
 
-5. ⚠️ Kode ini perlu dipasang di website (kasih ke developer)
-6. Biasanya dipasang di file layout utama (contoh: `resources/views/components/layout.blade.php` atau `app.blade.php`)
-7. Letakkan di dalam tag `<head>` sebelum closing `</head>`
+5. ⚠️ **PENTING:** Kode ini perlu dipasang di website!
+6. **COPY KODE INI** dan kirimkan ke developer
+7. Tracking code harus dipasang di semua halaman website
+8. Biasanya dipasang di file layout utama website
+9. Developer akan tahu cara memasangnya di framework Laravel
+
+💡 **Note untuk Developer:** Letakkan kode di `<head>` section sebelum closing `</head>` tag. Untuk Laravel, biasanya di file `resources/views/layouts/app.blade.php` atau `resources/views/components/layout.blade.php`
 
 ### Credential yang Perlu Diberikan:
 ```env
