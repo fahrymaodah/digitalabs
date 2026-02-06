@@ -427,7 +427,7 @@
         function resetCouponState() {
             const couponInput = document.getElementById('coupon_code');
             // Reset to default border when user types
-            couponInput.classList.remove('border-green-500', 'border-red-300', 'bg-green-50', 'bg-red-50');
+            couponInput.classList.remove('border-green-500', 'border-red-500');
             couponInput.classList.add('border-gray-200');
         }
 
@@ -472,9 +472,9 @@
                     discountAmount.textContent = '-' + formatRupiah(data.discount);
                     totalEl.textContent = formatRupiah(data.total);
                     
-                    // Green border on success
-                    couponInput.classList.remove('border-red-300', 'border-gray-200');
-                    couponInput.classList.add('border-green-500', 'bg-green-50');
+                    // Green border on success (no background)
+                    couponInput.classList.remove('border-red-500', 'border-gray-200');
+                    couponInput.classList.add('border-green-500');
                     
                     showToast('✓ ' + data.message, 'success');
                 } else {
@@ -482,17 +482,17 @@
                     discountRow.style.display = 'none';
                     totalEl.textContent = formatRupiah(originalPrice);
                     
-                    // Red border on failure
-                    couponInput.classList.remove('border-green-500', 'border-gray-200', 'bg-green-50');
-                    couponInput.classList.add('border-red-300', 'bg-red-50');
+                    // Red border on failure (no background)
+                    couponInput.classList.remove('border-green-500', 'border-gray-200');
+                    couponInput.classList.add('border-red-500');
                     
                     showToast(data.message, 'error');
                 }
             })
             .catch(error => {
-                // Red border on error
-                couponInput.classList.remove('border-green-500', 'border-gray-200', 'bg-green-50');
-                couponInput.classList.add('border-red-300', 'bg-red-50');
+                // Red border on error (no background)
+                couponInput.classList.remove('border-green-500', 'border-gray-200');
+                couponInput.classList.add('border-red-500');
                 
                 showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             })
