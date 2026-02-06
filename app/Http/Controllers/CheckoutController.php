@@ -194,6 +194,10 @@ class CheckoutController extends Controller
 
             DB::commit();
 
+            // Manually trigger order created email after commit
+            // Observer won't fire because we redirect immediately
+            app(\App\Services\EmailService::class)->sendOrderCreatedEmail($order);
+
             // Redirect to Duitku payment page
             return redirect()->away($result['payment_url']);
 

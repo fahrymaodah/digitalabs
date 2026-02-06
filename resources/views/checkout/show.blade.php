@@ -64,6 +64,7 @@
                                         id="coupon_code"
                                         class="flex-1 min-w-0 rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-3 border text-sm"
                                         placeholder="Masukkan kode kupon"
+                                        oninput="resetCouponState()"
                                     >
                                     <button 
                                         type="button" 
@@ -423,8 +424,16 @@
             return true;
         }
 
+        function resetCouponState() {
+            const couponInput = document.getElementById('coupon_code');
+            // Reset to default border when user types
+            couponInput.classList.remove('border-green-500', 'border-red-300', 'bg-green-50', 'bg-red-50');
+            couponInput.classList.add('border-gray-200');
+        }
+
         function applyCoupon() {
             const code = document.getElementById('coupon_code').value.trim();
+            const couponInput = document.getElementById('coupon_code');
             const discountRow = document.getElementById('discount-row');
             const discountAmount = document.getElementById('discount-amount');
             const totalEl = document.getElementById('total');
@@ -463,16 +472,28 @@
                     discountAmount.textContent = '-' + formatRupiah(data.discount);
                     totalEl.textContent = formatRupiah(data.total);
                     
+                    // Green border on success
+                    couponInput.classList.remove('border-red-300', 'border-gray-200');
+                    couponInput.classList.add('border-green-500', 'bg-green-50');
+                    
                     showToast('✓ ' + data.message, 'success');
                 } else {
                     currentDiscount = 0;
                     discountRow.style.display = 'none';
                     totalEl.textContent = formatRupiah(originalPrice);
                     
+                    // Red border on failure
+                    couponInput.classList.remove('border-green-500', 'border-gray-200', 'bg-green-50');
+                    couponInput.classList.add('border-red-300', 'bg-red-50');
+                    
                     showToast(data.message, 'error');
                 }
             })
             .catch(error => {
+                // Red border on error
+                couponInput.classList.remove('border-green-500', 'border-gray-200', 'bg-green-50');
+                couponInput.classList.add('border-red-300', 'bg-red-50');
+                
                 showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             })
             .finally(() => {
