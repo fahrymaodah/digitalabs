@@ -250,6 +250,57 @@ class CheckoutController extends Controller
     }
 
     /**
+     * Handle payment redirect - check status first before sending to Duitku
+     * This prevents showing Duitku page for already-paid orders
+     */
+    public function pay(string $orderNumber)
+    {
+        $order = Order::where('order_number', $orderNumber)->first();
+
+        if (!$order) {
+            return redirect('/dashboard/orders')
+                ->with('error', 'Order tidak ditemukan.');
+        }
+
+        // If already paid, redirect to my courses
+        if ($order->status === 'paid') {
+            return redirect('/dashboard/my-courses')
+                ->with('success', 'Order ini sudah dibayar. Selamat belajar!');
+        }
+
+        // If expired or failed, redirect to orders page
+        if (in_array($order->status, ['expired', 'failed', 'cancelled'])) {
+            return redirect('/dashboard/orders')
+                ->with('error', 'Order ini sudah tidak valid. Status: ' . $order->status);
+        }
+
+        // If pending and has payment URL, check status from Duitku first
+        if ($order->status === 'pending') {
+            $statusResult = $this->duitkuService->checkStatus($orderNumber);
+
+            if ($statusResult['success'] && $statusResult['status_code'] === '00') {
+                // Payment successful but our webhook hasn't updated yet
+                $order->markAsPaid();
+                $order->update([
+                    'duitku_reference' => $statusResult['reference'] ?? null,
+                ]);
+
+                return redirect('/dashboard/my-courses')
+                    ->with('success', 'Pembayaran berhasil! Selamat belajar.');
+            }
+
+            // Still pending or failed - redirect to payment page
+            if ($order->duitku_payment_url) {
+                return redirect()->away($order->duitku_payment_url);
+            }
+        }
+
+        // Fallback - redirect to orders page
+        return redirect('/dashboard/orders')
+            ->with('info', 'Silakan lakukan pembayaran untuk order ini.');
+    }
+
+    /**
      * Apply coupon (AJAX)
      */
     public function applyCoupon(Request $request)

@@ -54,6 +54,7 @@ Route::middleware('throttle:oauth')->group(function () {
 Route::middleware(['auth:user', 'throttle:checkout'])->group(function () {
     Route::post('/checkout/apply-coupon', [CheckoutController::class, 'applyCoupon'])->middleware('throttle:coupon')->name('checkout.apply-coupon');
     Route::get('/checkout/return', [CheckoutController::class, 'return'])->name('checkout.return');
+    Route::get('/checkout/pay/{orderNumber}', [CheckoutController::class, 'pay'])->name('checkout.pay');
     Route::get('/checkout/{course:uuid}', [CheckoutController::class, 'show'])->name('checkout.show');
     Route::post('/checkout/{course:uuid}', [CheckoutController::class, 'process'])->name('checkout.process');
 });

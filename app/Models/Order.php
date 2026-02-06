@@ -139,30 +139,60 @@ class Order extends Model
      */
     public function markAsPaid(): void
     {
+        \Log::info('markAsPaid called', ['order_id' => $this->id]);
+        
         $this->update([
             'status' => 'paid',
             'paid_at' => now(),
         ]);
 
+        \Log::info('markAsPaid: Status updated, now granting course access', [
+            'order_id' => $this->id,
+            'items_count' => $this->items->count()
+        ]);
+
         // Grant course access to user
         foreach ($this->items as $item) {
-            UserCourse::updateOrCreate(
-                [
-                    'user_id' => $this->user_id,
+            \Log::info('markAsPaid: Processing item', [
+                'order_id' => $this->id,
+                'course_id' => $item->course_id,
+                'user_id' => $this->user_id
+            ]);
+            
+            try {
+                $userCourse = UserCourse::updateOrCreate(
+                    [
+                        'user_id' => $this->user_id,
+                        'course_id' => $item->course_id,
+                    ],
+                    [
+                        'order_id' => $this->id,
+                        'purchased_at' => now(),
+                        'expires_at' => $item->course->access_type === 'limited'
+                            ? now()->addDays($item->course->access_days)
+                            : null,
+                    ]
+                );
+                
+                \Log::info('markAsPaid: UserCourse created/updated', [
+                    'user_course_id' => $userCourse->id,
                     'course_id' => $item->course_id,
-                ],
-                [
+                    'user_id' => $this->user_id
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('markAsPaid: Failed to create UserCourse', [
                     'order_id' => $this->id,
-                    'purchased_at' => now(),
-                    'expires_at' => $item->course->access_type === 'limited'
-                        ? now()->addDays($item->course->access_days)
-                        : null,
-                ]
-            );
+                    'course_id' => $item->course_id,
+                    'error' => $e->getMessage()
+                ]);
+                throw $e;
+            }
         }
 
         // Create affiliate commission if applicable
         if ($this->affiliate_id) {
+            \Log::info('markAsPaid: Creating affiliate commission', ['affiliate_id' => $this->affiliate_id]);
+            
             $affiliate = $this->affiliate;
             $commissionAmount = $this->total * ($affiliate->commission_rate / 100);
 
@@ -177,7 +207,11 @@ class Order extends Model
 
             $affiliate->increment('pending_earnings', $commissionAmount);
             $affiliate->increment('total_earnings', $commissionAmount);
+            
+            \Log::info('markAsPaid: Affiliate commission created', ['commission_amount' => $commissionAmount]);
         }
+        
+        \Log::info('markAsPaid completed successfully', ['order_id' => $this->id]);
     }
 
     // ==================== BOOT ====================

@@ -91,8 +91,7 @@
 
                         @if($order->status === 'pending' && $order->duitku_payment_url)
                             <div class="mt-4">
-                                <a href="{{ $order->duitku_payment_url }}" 
-                                   target="_blank"
+                                <a href="{{ route('checkout.pay', $order->order_number) }}" 
                                    class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium">
                                     <x-heroicon-o-credit-card class="w-4 h-4 mr-2" />
                                     Complete Payment

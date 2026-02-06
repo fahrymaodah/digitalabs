@@ -54,11 +54,9 @@
             Silakan selesaikan pembayaranmu dalam waktu <strong>24 jam</strong> untuk mengakses kelas.
         </p>
         
-        @if($order->payment_url ?? $order->duitku_payment_url ?? null)
-        <a href="{{ $order->payment_url ?? $order->duitku_payment_url }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+        <a href="{{ route('checkout.pay', $order->order_number) }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
             Bayar Sekarang
         </a>
-        @endif
     </div>
 
     {{-- Payment Methods --}}
