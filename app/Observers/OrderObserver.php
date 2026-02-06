@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
+    public bool $afterCommit = true;
+
     public function __construct(
         protected EmailService $emailService
     ) {}

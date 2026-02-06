@@ -38,7 +38,7 @@
             <td style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb;">
                 <span style="font-size: 14px; color: #6b7280;">Kelas Dibeli</span>
                 <p style="font-size: 15px; color: #111827; font-weight: 600; margin: 8px 0 0 0;">
-                    {{ $commission->order->items->first()->course->title }}
+                    {{ $commission->order->items->first()?->course?->title ?? 'Course' }}
                 </p>
             </td>
         </tr>

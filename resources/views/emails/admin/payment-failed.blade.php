@@ -100,7 +100,7 @@
                     <td style="padding: 16px 20px; {{ !$loop->last ? 'border-bottom: 1px solid #e5e7eb;' : '' }}">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 15px; color: #111827; font-weight: 500;">
-                                {{ $item->product->name ?? $item->product_name ?? 'Unknown Product' }}
+                                {{ $item->course->name ?? 'Unknown Course' }}
                             </span>
                             <span style="font-size: 15px; color: #6b7280; font-weight: 600; text-decoration: line-through;">
                                 Rp {{ number_format($item->price, 0, ',', '.') }}

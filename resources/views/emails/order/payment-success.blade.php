@@ -31,16 +31,16 @@
             <tr>
                 <td>
                     @php
-                        $course = $order->items->first()->course;
+                        $course = $order->items->first()?->course;
                     @endphp
                     <p style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 8px 0;">
                         Kelas yang Dibeli
                     </p>
                     <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 8px 0;">
-                        {{ $course->title }}
+                        {{ $course?->title ?? 'Course' }}
                     </h3>
                     <p style="font-size: 14px; color: #6b7280; margin: 0 0 16px 0;">
-                        oleh {{ $course->instructor ?? 'Digitalabs' }}
+                        oleh {{ $course?->instructor ?? 'Digitalabs' }}
                     </p>
                     
                     {{-- Course Stats --}}
@@ -53,7 +53,7 @@
                             </td>
                             <td style="padding-right: 16px;">
                                 <span style="font-size: 13px; color: #6b7280;">
-                                    ⏱️ {{ $course->duration ?? 'Lifetime' }}
+                                    ⏱️ {{ $course?->duration ?? 'Lifetime' }}
                                 </span>
                             </td>
                         </tr>
@@ -96,7 +96,9 @@
     {{-- CTA Button --}}
     <div style="text-align: center; margin: 32px 0;">
         @include('emails.components.button-primary', [
-            'url' => config('app.url') . '/dashboard/learn/' . $order->items->first()->course->slug,
+            'url' => $course?->slug
+                ? config('app.url') . '/dashboard/learn/' . $course->slug
+                : config('app.url') . '/dashboard/my-courses',
             'text' => '🚀 Mulai Belajar Sekarang'
         ])
     </div>
