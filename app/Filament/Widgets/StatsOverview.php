@@ -14,11 +14,27 @@ class StatsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalRevenue = Order::where('status', 'paid')->sum('total');
-        $monthlyRevenue = Order::where('status', 'paid')
+        // Revenue calculations
+        $grossRevenue = Order::where('status', 'paid')->sum('total');
+        $monthlyGrossRevenue = Order::where('status', 'paid')
             ->whereMonth('paid_at', now()->month)
             ->whereYear('paid_at', now()->year)
             ->sum('total');
+
+        // Affiliate commission calculations
+        $totalAffiliateCommission = \App\Models\AffiliateCommission::whereHas('order', function($query) {
+            $query->where('status', 'paid');
+        })->sum('commission_amount');
+        
+        $monthlyAffiliateCommission = \App\Models\AffiliateCommission::whereHas('order', function($query) {
+            $query->where('status', 'paid')
+                ->whereMonth('paid_at', now()->month)
+                ->whereYear('paid_at', now()->year);
+        })->sum('commission_amount');
+
+        // Net revenue (after affiliate commission)
+        $netRevenue = $grossRevenue - $totalAffiliateCommission;
+        $monthlyNetRevenue = $monthlyGrossRevenue - $monthlyAffiliateCommission;
 
         $totalUsers = User::count();
         $newUsersThisMonth = User::whereMonth('created_at', now()->month)
@@ -30,10 +46,23 @@ class StatsOverview extends BaseWidget
         $pendingOrders = Order::where('status', 'pending')->count();
 
         return [
-            Stat::make('Total Revenue', 'Rp ' . number_format($totalRevenue, 0, ',', '.'))
-                ->description('Monthly: Rp ' . number_format($monthlyRevenue, 0, ',', '.'))
+            Stat::make('Gross Revenue', 'Rp ' . number_format($grossRevenue, 0, ',', '.'))
+                ->description('Monthly: Rp ' . number_format($monthlyGrossRevenue, 0, ',', '.'))
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
-                ->color('success'),
+                ->color('info')
+                ->chart([7, 4, 6, 8, 10, 12, 15]),
+
+            Stat::make('Net Revenue', 'Rp ' . number_format($netRevenue, 0, ',', '.'))
+                ->description('Monthly: Rp ' . number_format($monthlyNetRevenue, 0, ',', '.'))
+                ->descriptionIcon('heroicon-m-banknotes')
+                ->color('success')
+                ->chart([5, 3, 5, 7, 9, 11, 13]),
+
+            Stat::make('Affiliate Commission', 'Rp ' . number_format($totalAffiliateCommission, 0, ',', '.'))
+                ->description('Monthly: Rp ' . number_format($monthlyAffiliateCommission, 0, ',', '.'))
+                ->descriptionIcon('heroicon-m-user-group')
+                ->color('warning')
+                ->chart([2, 1, 1, 1, 1, 1, 2]),
 
             Stat::make('Total Users', number_format($totalUsers))
                 ->description('+' . $newUsersThisMonth . ' this month')
@@ -43,7 +72,7 @@ class StatsOverview extends BaseWidget
             Stat::make('Published Courses', $totalCourses)
                 ->description('Active courses')
                 ->descriptionIcon('heroicon-m-academic-cap')
-                ->color('warning'),
+                ->color('primary'),
 
             Stat::make('Pending Orders', $pendingOrders)
                 ->description('Awaiting payment')

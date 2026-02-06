@@ -26,7 +26,7 @@ class ViewOrder extends ViewRecord
     {
         return $schema
             ->components([
-                Grid::make(2)
+                Grid::make(3)
                     ->schema([
                         Section::make('Order Information')
                             ->schema([
@@ -76,11 +76,26 @@ class ViewOrder extends ViewRecord
                                     ->copyable(),
                             ])
                             ->columns(2),
+
+                        Section::make('Affiliate')
+                            ->schema([
+                                TextEntry::make('affiliate.user.name')
+                                    ->label('Affiliate')
+                                    ->placeholder('No affiliate'),
+                                TextEntry::make('affiliate.referral_code')
+                                    ->label('Referral Code')
+                                    ->placeholder('N/A'),
+                                TextEntry::make('commission.0.commission_amount')
+                                    ->label('Commission Amount')
+                                    ->money('IDR')
+                                    ->placeholder('N/A'),
+                            ])
+                            ->columns(1),
                     ]),
 
                 Section::make('Price Breakdown')
                     ->schema([
-                        Grid::make(5)
+                        Grid::make(6)
                             ->schema([
                                 TextEntry::make('subtotal')
                                     ->label('Subtotal')
@@ -111,69 +126,48 @@ class ViewOrder extends ViewRecord
                                     ->helperText('Unique code / gateway fee'),
 
                                 TextEntry::make('total')
-                                    ->label('Total Paid')
+                                    ->label('Total Paid (Customer)')
+                                    ->money('IDR')
+                                    ->weight('bold')
+                                    ->color('info')
+                                    ->helperText('Yang dibayar customer'),
+
+                                TextEntry::make('commission.0.commission_amount')
+                                    ->label('Affiliate Commission')
+                                    ->money('IDR')
+                                    ->color('warning')
+                                    ->prefix('- ')
+                                    ->placeholder('Rp 0')
+                                    ->helperText('Komisi ke affiliate'),
+                            ]),
+                        
+                        Grid::make(1)
+                            ->schema([
+                                TextEntry::make('net_revenue')
+                                    ->label('Net Revenue (Business)')
                                     ->money('IDR')
                                     ->weight('bold')
                                     ->size('lg')
-                                    ->color('success'),
+                                    ->color('success')
+                                    ->state(fn ($record) => $record->total - ($record->commission->first()?->commission_amount ?? 0))
+                                    ->helperText('Pendapatan bersih setelah komisi affiliate'),
                             ]),
                         
                         // Formula verification
                         TextEntry::make('formula')
                             ->label('')
                             ->state(fn ($record) => sprintf(
-                                'Formula: Rp %s - Rp %s + Rp %s = Rp %s',
+                                'Formula: (Subtotal Rp %s - Discount Rp %s + Payment Fee Rp %s) - Affiliate Commission Rp %s = Net Revenue Rp %s',
                                 number_format($record->subtotal),
                                 number_format($record->discount),
                                 number_format($record->payment_fee),
-                                number_format($record->subtotal - $record->discount + $record->payment_fee)
+                                number_format($record->commission->first()?->commission_amount ?? 0),
+                                number_format($record->total - ($record->commission->first()?->commission_amount ?? 0))
                             ))
                             ->color('gray')
                             ->extraAttributes(['class' => 'text-xs']),
                     ])
-                    ->description('Subtotal - Discount + Payment Fee = Total'),
-
-                Section::make('Order Items')
-                    ->schema([
-                        RepeatableEntry::make('items')
-                            ->schema([
-                                TextEntry::make('course.title')
-                                    ->label('Course'),
-                                TextEntry::make('original_price')
-                                    ->label('Original Price')
-                                    ->money('IDR')
-                                    ->color('gray'),
-                                TextEntry::make('price')
-                                    ->label('Purchase Price')
-                                    ->money('IDR')
-                                    ->weight('bold'),
-                                TextEntry::make('discount_percentage')
-                                    ->label('Savings')
-                                    ->badge()
-                                    ->color('success')
-                                    ->suffix('%')
-                                    ->placeholder('-')
-                                    ->formatStateUsing(fn ($state) => $state > 0 ? "{$state}% off" : null),
-                            ])
-                            ->columns(4),
-                    ])
-                    ->description('Courses purchased in this order'),
-
-                Section::make('Affiliate')
-                    ->schema([
-                        TextEntry::make('affiliate.user.name')
-                            ->label('Affiliate')
-                            ->placeholder('No affiliate'),
-                        TextEntry::make('affiliate.referral_code')
-                            ->label('Referral Code')
-                            ->placeholder('N/A'),
-                        TextEntry::make('commission.0.amount')
-                            ->label('Commission Amount')
-                            ->money('IDR')
-                            ->placeholder('N/A'),
-                    ])
-                    ->columns(3)
-                    ->visible(fn ($record) => $record->affiliate_id !== null),
+                    ->description('Total Paid - Affiliate Commission = Net Revenue'),
             ]);
     }
 }
