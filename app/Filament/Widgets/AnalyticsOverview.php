@@ -4,8 +4,6 @@ namespace App\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Spatie\Analytics\Period;
-use Spatie\Analytics\Facades\Analytics;
 use Carbon\Carbon;
 
 class AnalyticsOverview extends StatsOverviewWidget
@@ -14,25 +12,48 @@ class AnalyticsOverview extends StatsOverviewWidget
     
     protected function getStats(): array
     {
+        // Check if analytics is configured
+        if (!config('analytics.property_id')) {
+            return [
+                Stat::make('Analytics Setup Required', 'Not Configured')
+                    ->description('Please configure Google Analytics credentials')
+                    ->descriptionIcon('heroicon-o-information-circle')
+                    ->color('warning'),
+            ];
+        }
+        
         try {
+            // Only import when actually needed and configured
+            if (!class_exists('Spatie\Analytics\Period')) {
+                return [
+                    Stat::make('Analytics Package', 'Installing...')
+                        ->description('Please run composer install')
+                        ->descriptionIcon('heroicon-o-information-circle')
+                        ->color('warning'),
+                ];
+            }
+            
+            $periodClass = 'Spatie\Analytics\Period';
+            $analyticsClass = 'Spatie\Analytics\Facades\Analytics';
+            
             // Get data for last 7 days
-            $period = Period::days(7);
+            $period = $periodClass::days(7);
             
             // Total visitors
-            $totalVisitors = Analytics::fetchTotalVisitorsAndPageViews($period);
+            $totalVisitors = $analyticsClass::fetchTotalVisitorsAndPageViews($period);
             $visitors = $totalVisitors->sum('screenPageViews') ?? 0;
             
             // Active users (last 28 days)
-            $activeUsersPeriod = Period::days(28);
-            $activeUsers = Analytics::fetchTotalVisitorsAndPageViews($activeUsersPeriod);
+            $activeUsersPeriod = $periodClass::days(28);
+            $activeUsers = $analyticsClass::fetchTotalVisitorsAndPageViews($activeUsersPeriod);
             $activeCount = $activeUsers->sum('activeUsers') ?? 0;
             
             // Top pages
-            $topPages = Analytics::fetchMostVisitedPages($period, 5);
+            $topPages = $analyticsClass::fetchMostVisitedPages($period, 5);
             $pageViews = $topPages->sum('screenPageViews') ?? 0;
             
             // Get user analytics for location data
-            $userAnalytics = Analytics::get(
+            $userAnalytics = $analyticsClass::get(
                 $period,
                 metrics: ['activeUsers', 'sessions'],
                 dimensions: ['city', 'country']
@@ -70,10 +91,10 @@ class AnalyticsOverview extends StatsOverviewWidget
         } catch (\Exception $e) {
             // Return default stats if Analytics fails
             return [
-                Stat::make('Analytics Setup', 'Configuring...')
+                Stat::make('Analytics Error', 'Please Check Configuration')
                     ->description($e->getMessage())
                     ->descriptionIcon('heroicon-o-information-circle')
-                    ->color('warning'),
+                    ->color('danger'),
             ];
         }
     }
