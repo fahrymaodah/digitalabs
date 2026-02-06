@@ -89,6 +89,11 @@
         </table>
     @endif
 
+    @php
+        $affiliateCommission = $order->commission->first()?->commission_amount
+            ?? ($order->affiliate ? $order->total * ($order->affiliate->commission_rate / 100) : 0);
+    @endphp
+
     @if($order->affiliate)
     {{-- Affiliate Info --}}
     <div style="background-color: #fef3c7; border-radius: 8px; padding: 12px 16px; margin: 0 0 16px 0;">
@@ -153,7 +158,7 @@
         </tr>
         @endif
         
-        @if($order->affiliate)
+        @if($order->affiliate && $affiliateCommission > 0)
         <tr>
             <td style="padding: 10px 16px; border-bottom: 1px solid #fecaca;">
                 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -163,7 +168,7 @@
                         </td>
                         <td style="width: 40%; text-align: right;">
                             <span style="font-size: 14px; color: #f59e0b; font-weight: 500;">
-                                Rp {{ number_format($order->affiliate_commission ?? 0, 0, ',', '.') }}
+                                Rp {{ number_format($affiliateCommission, 0, ',', '.') }}
                             </span>
                         </td>
                     </tr>

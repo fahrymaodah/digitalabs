@@ -230,7 +230,7 @@ class EmailService
                 return;
             }
 
-            $order->load(['user', 'items.course', 'affiliate.user', 'coupon']);
+            $order->load(['user', 'items.course', 'affiliate.user', 'coupon', 'commission']);
             Mail::to($adminEmail)->send(new AdminPaymentSuccessMail($order));
             Log::info('Admin payment success email sent', [
                 'order_id' => $order->id,
@@ -262,7 +262,7 @@ class EmailService
                 return;
             }
 
-            $order->load(['user', 'items.course', 'affiliate.user', 'coupon']);
+            $order->load(['user', 'items.course', 'affiliate.user', 'coupon', 'commission']);
             Mail::to($adminEmail)->send(new AdminPaymentFailedMail($order));
             Log::info('Admin payment failed email sent', [
                 'order_id' => $order->id,

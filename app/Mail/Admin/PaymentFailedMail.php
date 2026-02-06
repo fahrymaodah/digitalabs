@@ -21,7 +21,7 @@ class PaymentFailedMail extends Mailable implements ShouldQueue
         public Order $order
     ) {
         // Load relationships needed for email
-        $this->order->loadMissing(['user', 'items.course', 'affiliate.user', 'coupon']);
+        $this->order->loadMissing(['user', 'items.course', 'affiliate.user', 'coupon', 'commission']);
     }
 
     /**
@@ -44,7 +44,7 @@ class PaymentFailedMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         // Ensure relationships are loaded for the view
-        $this->order->loadMissing(['user', 'items.course', 'affiliate.user', 'coupon']);
+        $this->order->loadMissing(['user', 'items.course', 'affiliate.user', 'coupon', 'commission']);
         
         return new Content(
             view: 'emails.admin.payment-failed',

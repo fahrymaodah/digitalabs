@@ -39,6 +39,27 @@
         'total' => $order->total_price
     ])
 
+    @if($order->affiliate)
+    <div style="background-color: #fef3c7; border-radius: 8px; padding: 12px 16px; margin: 0 0 16px 0;">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+                <td style="width: 50%; vertical-align: middle;">
+                    <span style="font-size: 12px; color: #92400e; display: block;">🤝 Affiliate</span>
+                    <p style="font-size: 14px; color: #78350f; font-weight: 600; margin: 2px 0 0 0;">
+                        {{ $order->affiliate->user->name ?? 'N/A' }}
+                    </p>
+                </td>
+                <td style="width: 50%; text-align: right; vertical-align: middle;">
+                    <span style="font-size: 12px; color: #92400e; display: block;">Kode Referral</span>
+                    <p style="font-size: 14px; color: #78350f; font-weight: 600; margin: 2px 0 0 0;">
+                        {{ $order->affiliate->referral_code ?? 'N/A' }}
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </div>
+    @endif
+
     @if($order->coupon)
     <p style="font-size: 14px; color: #059669; margin: 0 0 16px 0;">
         ✅ Kode kupon <strong>{{ $order->coupon->code }}</strong> berhasil digunakan

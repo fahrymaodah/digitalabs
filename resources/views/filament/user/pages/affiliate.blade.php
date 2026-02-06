@@ -151,16 +151,22 @@
 
             {{-- Referral Link --}}
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
-                <h3 class="font-semibold text-gray-900 dark:text-white mb-4">Your Referral Link</h3>
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Your Referral Link</h3>
+                    <span id="copy-toast" class="hidden text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">
+                        Link copied ✅
+                    </span>
+                </div>
                 <div class="flex gap-2">
                     <input type="text" 
                            value="{{ $referral_link }}" 
                            readonly 
                            class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
                     <button 
-                        onclick="navigator.clipboard.writeText('{{ $referral_link }}'); alert('Copied!');"
-                        class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium">
+                        onclick="copyReferralLink()"
+                        class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium flex items-center gap-2">
                         <x-heroicon-o-clipboard class="w-5 h-5" />
+                        <span class="hidden sm:inline">Copy</span>
                     </button>
                 </div>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
@@ -456,3 +462,22 @@
         </div>
     @endif
 </x-filament-panels::page>
+
+@push('scripts')
+<script>
+    function copyReferralLink() {
+        const toast = document.getElementById('copy-toast');
+        const text = @json($referral_link);
+
+        navigator.clipboard.writeText(text).then(() => {
+            toast.classList.remove('hidden');
+            toast.classList.add('animate-pulse');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('animate-pulse');
+            }, 2000);
+        });
+    }
+</script>
+@endpush

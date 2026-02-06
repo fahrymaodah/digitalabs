@@ -113,7 +113,7 @@ if (config('app.debug')) {
             $orderModel->save();
         }
         
-        $orderModel->load(['user', 'items.course', 'coupon', 'affiliate.user']);
+        $orderModel->load(['user', 'items.course', 'coupon', 'affiliate.user', 'commission']);
 
         // Create demo payout
         $payoutModel = \App\Models\AffiliatePayout::create([
