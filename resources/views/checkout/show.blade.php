@@ -495,9 +495,10 @@
                     discountAmount.textContent = '-' + formatRupiah(data.discount);
                     totalEl.textContent = formatRupiah(data.total);
                     
-                    // Green border + success icon
+                    // Green border + success icon + light green background
                     couponInput.classList.remove('border-red-500', 'border-gray-300', 'bg-red-50');
                     couponInput.classList.add('border-green-500', 'bg-green-50');
+                    couponInput.style.borderColor = '#10b981'; // Force green border
                     successIcon.classList.remove('hidden');
                     errorIcon.classList.add('hidden');
                     

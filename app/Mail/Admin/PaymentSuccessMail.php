@@ -21,7 +21,7 @@ class PaymentSuccessMail extends Mailable implements ShouldQueue
         public Order $order
     ) {
         // Load relationships needed for email
-        $this->order->loadMissing(['user', 'items.product']);
+        $this->order->loadMissing(['user', 'items.course']);
     }
 
     /**
@@ -43,7 +43,7 @@ class PaymentSuccessMail extends Mailable implements ShouldQueue
     public function content(): Content
     {
         // Ensure relationships are loaded for the view
-        $this->order->loadMissing(['user', 'items.product']);
+        $this->order->loadMissing(['user', 'items.course']);
         
         return new Content(
             view: 'emails.admin.payment-success',
