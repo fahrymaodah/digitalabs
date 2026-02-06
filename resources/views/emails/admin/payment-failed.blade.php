@@ -2,20 +2,20 @@
 
 @section('content')
     {{-- Failed Icon & Title --}}
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div style="display: inline-block; width: 60px; height: 60px; background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); border-radius: 50%; line-height: 60px; font-size: 30px;">
+    <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: inline-block; width: 80px; height: 80px; background: linear-gradient(135deg, #fee2e2 0%, #fca5a5 100%); border-radius: 50%; line-height: 80px; font-size: 40px;">
             ❌
         </div>
-        <h1 style="font-size: 22px; font-weight: 700; color: #111827; margin: 12px 0 8px 0;">
+        <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin: 16px 0 8px 0;">
             Pembayaran {{ $order->status === 'expired' ? 'Kadaluarsa' : 'Gagal' }}
         </h1>
-        <p style="font-size: 15px; color: #6b7280; margin: 0;">
+        <p style="font-size: 16px; color: #6b7280; margin: 0;">
             {{ $order->user->name ?? 'Unknown' }} • {{ $order->order_number }}
         </p>
     </div>
 
     {{-- Order Amount Box --}}
-    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center;">
+    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
         <p style="font-size: 13px; color: rgba(255,255,255,0.8); margin: 0 0 6px 0; text-transform: uppercase; letter-spacing: 0.5px;">
             Total Pesanan
         </p>

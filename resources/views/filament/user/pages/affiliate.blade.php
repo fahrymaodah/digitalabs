@@ -163,9 +163,10 @@
                            readonly 
                            class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
                     <button 
+                        id="copy-btn"
                         onclick="copyReferralLink()"
                         class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium flex items-center gap-2">
-                        <x-heroicon-o-clipboard class="w-5 h-5" />
+                        <x-heroicon-o-clipboard id="clipboard-icon" class="w-5 h-5" />
                         <span class="hidden sm:inline">Copy</span>
                     </button>
                 </div>
@@ -466,16 +467,21 @@
 @push('scripts')
 <script>
     function copyReferralLink() {
-        const toast = document.getElementById('copy-toast');
+        const icon = document.getElementById('clipboard-icon');
         const text = @json($referral_link);
 
         navigator.clipboard.writeText(text).then(() => {
-            toast.classList.remove('hidden');
-            toast.classList.add('animate-pulse');
+            // Change icon to checkmark
+            icon.classList.add('hidden');
+            const checkmark = document.createElement('span');
+            checkmark.className = 'text-md font-extrabold';
+            checkmark.textContent = '✓';
+            icon.parentElement.insertBefore(checkmark, icon);
 
+            // Revert after 2 seconds
             setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('animate-pulse');
+                checkmark.remove();
+                icon.classList.remove('hidden');
             }, 2000);
         });
     }

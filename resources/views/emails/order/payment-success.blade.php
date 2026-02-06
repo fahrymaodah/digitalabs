@@ -48,7 +48,7 @@
                         <tr>
                             <td style="padding-right: 16px;">
                                 <span style="font-size: 13px; color: #6b7280;">
-                                    📚 {{ $course->lessons_count ?? 0 }} Materi
+                                    📚 {{ $course?->lessons->count() ?? 0 }} Materi
                                 </span>
                             </td>
                             <td style="padding-right: 16px;">

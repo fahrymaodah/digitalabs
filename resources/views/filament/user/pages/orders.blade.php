@@ -86,6 +86,11 @@
                                         Paid at: <span class="font-medium text-gray-900 dark:text-white">{{ $order->paid_at->format('d M Y, H:i') }}</span>
                                     </p>
                                 @endif
+                                @if($order->affiliate)
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                                        Affiliate: <span class="font-medium text-gray-900 dark:text-white">{{ $order->affiliate->user->name ?? 'N/A' }}</span> ({{ $order->affiliate->referral_code ?? 'N/A' }})
+                                    </p>
+                                @endif
                             </div>
                         @endif
 
