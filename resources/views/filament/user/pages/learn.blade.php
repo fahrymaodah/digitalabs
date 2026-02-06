@@ -370,6 +370,13 @@
 
         function initPlayer() {
             console.log('Plyr init, isCreatingPlayer:', isCreatingPlayer);
+            
+            // Hide loading spinner on initial load
+            var existingSpinner = document.getElementById('learn-loading-spinner');
+            if (existingSpinner) {
+                existingSpinner.remove();
+            }
+            
             // Check if current lesson has video
             var playerEl = document.getElementById('youtube-player');
             if (playerEl) {
