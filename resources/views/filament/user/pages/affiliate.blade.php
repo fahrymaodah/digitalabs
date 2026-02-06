@@ -461,29 +461,29 @@
                 </div>
             </div>
         </div>
+
+        @push('scripts')
+        <script>
+            function copyReferralLink() {
+                const icon = document.getElementById('clipboard-icon');
+                const text = @json($referral_link);
+
+                navigator.clipboard.writeText(text).then(() => {
+                    // Change icon to checkmark
+                    icon.classList.add('hidden');
+                    const checkmark = document.createElement('span');
+                    checkmark.className = 'text-md font-extrabold';
+                    checkmark.textContent = '✓';
+                    icon.parentElement.insertBefore(checkmark, icon);
+
+                    // Revert after 2 seconds
+                    setTimeout(() => {
+                        checkmark.remove();
+                        icon.classList.remove('hidden');
+                    }, 2000);
+                });
+            }
+        </script>
+        @endpush
     @endif
 </x-filament-panels::page>
-
-@push('scripts')
-<script>
-    function copyReferralLink() {
-        const icon = document.getElementById('clipboard-icon');
-        const text = @json($referral_link);
-
-        navigator.clipboard.writeText(text).then(() => {
-            // Change icon to checkmark
-            icon.classList.add('hidden');
-            const checkmark = document.createElement('span');
-            checkmark.className = 'text-md font-extrabold';
-            checkmark.textContent = '✓';
-            icon.parentElement.insertBefore(checkmark, icon);
-
-            // Revert after 2 seconds
-            setTimeout(() => {
-                checkmark.remove();
-                icon.classList.remove('hidden');
-            }, 2000);
-        });
-    }
-</script>
-@endpush
