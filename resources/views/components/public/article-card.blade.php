@@ -4,14 +4,7 @@
 ])
 
 @php
-    // Check if featured_image is a URL or a path
-    if ($article->featured_image) {
-        $image = str_starts_with($article->featured_image, 'http') 
-            ? $article->featured_image 
-            : asset('storage/' . $article->featured_image);
-    } else {
-        $image = 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800';
-    }
+    $image = $article->featured_image_url ?? 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800';
 @endphp
 
 <article class="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100">

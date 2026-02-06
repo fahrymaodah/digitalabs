@@ -26,6 +26,43 @@
                             <input type="tel" wire:model="phone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             @error('phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                         </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">Provinsi *</label>
+                            <select wire:model.live="province_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                                <option value="">Pilih Provinsi</option>
+                                @foreach($this->provinces as $province)
+                                    <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('province_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+
+                        @if($province_id)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">Kota/Kabupaten *</label>
+                            <select wire:model.live="city_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                                <option value="">Pilih Kota/Kabupaten</option>
+                                @foreach($this->cities as $city)
+                                    <option value="{{ $city->id }}">{{ $city->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('city_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                        @endif
+
+                        @if($city_id)
+                        <div>
+                            <label class="block text-sm font-medium text-gray-900 dark:text-white mb-1">Kecamatan (Opsional)</label>
+                            <select wire:model="district_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="">Pilih Kecamatan</option>
+                                @foreach($this->districts as $district)
+                                    <option value="{{ $district->id }}">{{ $district->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('district_id') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                        </div>
+                        @endif
                     </div>
                     
                     <div class="mt-6 flex justify-end">

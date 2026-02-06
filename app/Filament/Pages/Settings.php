@@ -36,6 +36,17 @@ class Settings extends Page implements HasForms
     public function mount(): void
     {
         $settings = Setting::all()->pluck('value', 'key')->toArray();
+        
+        // Provide default values for new notification settings
+        $defaults = [
+            'admin_email' => config('mail.from.address', ''),
+            'admin_notify_payout' => true,
+            'admin_notify_payment_success' => true,
+            'admin_notify_payment_failed' => true,
+            'admin_notify_new_affiliate' => true,
+        ];
+        
+        $settings = array_merge($defaults, $settings);
         $this->form->fill($settings);
     }
 
@@ -158,6 +169,32 @@ class Settings extends Page implements HasForms
                                     ])
                                     ->columns(2),
                             ]),
+
+                        Tabs\Tab::make('Notifications')
+                            ->icon('heroicon-o-bell')
+                            ->schema([
+                                Section::make('Admin Email Notifications')
+                                    ->description('Configure which notifications the admin should receive.')
+                                    ->schema([
+                                        TextInput::make('admin_email')
+                                            ->label('Admin Email')
+                                            ->email()
+                                            ->helperText('All admin notifications will be sent to this email'),
+                                        Toggle::make('admin_notify_payout')
+                                            ->label('New Payout Requests')
+                                            ->helperText('Get notified when an affiliate requests a payout'),
+                                        Toggle::make('admin_notify_payment_success')
+                                            ->label('Successful Payments')
+                                            ->helperText('Get notified when a payment is successful'),
+                                        Toggle::make('admin_notify_payment_failed')
+                                            ->label('Failed/Expired Payments')
+                                            ->helperText('Get notified when a payment fails or expires'),
+                                        Toggle::make('admin_notify_new_affiliate')
+                                            ->label('New Affiliate Registrations')
+                                            ->helperText('Get notified when a new affiliate registers'),
+                                    ])
+                                    ->columns(1),
+                            ]),
                     ])
                     ->columnSpanFull(),
             ]);
@@ -180,11 +217,19 @@ class Settings extends Page implements HasForms
             $setting = Setting::where('key', $key)->first();
 
             if ($setting) {
+                // Update existing setting
                 Setting::set($key, $value, $setting->type, $setting->group);
+            } else {
+                // Create new setting - determine type from value
+                $type = match (gettype($value)) {
+                    'boolean' => 'boolean',
+                    'integer' => 'integer',
+                    'double' => 'float',
+                    default => 'text',
+                };
+                Setting::set($key, $value, $type, 'general');
             }
         }
-
-        Setting::clearCache();
 
         Notification::make()
             ->title('Settings saved successfully')

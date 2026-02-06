@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CourseResource\Pages;
 use App\Models\Course;
 use App\Models\CourseCategory;
+use App\Models\Tutor;
 use BackedEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
@@ -39,7 +40,7 @@ class CourseResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Course Management';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'title';
 
@@ -147,6 +148,18 @@ class CourseResource extends Resource
                                                             ->helperText('Leave empty for no sale'),
                                                     ]),
 
+                                                Section::make('Tutors')
+                                                    ->schema([
+                                                        Select::make('tutors')
+                                                            ->label('Tutors')
+                                                            ->multiple()
+                                                            ->relationship('tutors', 'name')
+                                                            ->options(Tutor::active()->ordered()->pluck('name', 'id'))
+                                                            ->searchable()
+                                                            ->preload()
+                                                            ->helperText('Select one or more tutors for this course. The first selected tutor will be marked as primary.'),
+                                                    ]),
+
                                                 Section::make('Media')
                                                     ->schema([
                                                         FileUpload::make('thumbnail')
@@ -208,11 +221,10 @@ class CourseResource extends Resource
 
                                                 TextInput::make('youtube_url')
                                                     ->label('YouTube URL')
-                                                    ->required()
                                                     ->url()
                                                     ->placeholder('https://youtube.com/watch?v=...')
                                                     ->columnSpanFull()
-                                                    ->helperText('Video duration will be stored in seconds from YouTube'),
+                                                    ->helperText('Optional: Video duration will be stored in seconds from YouTube'),
 
                                                 Grid::make(4)
                                                     ->schema([
@@ -257,8 +269,7 @@ class CourseResource extends Resource
                                     ->columnSpanFull(),
                             ]),
                     ])
-                    ->columnSpanFull()
-                    ->persistTabInQueryString(),
+                    ->columnSpanFull(),
             ]);
     }
 

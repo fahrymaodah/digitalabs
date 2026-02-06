@@ -147,11 +147,9 @@ class Learn extends Page
         // Topics are now computed property - no need to set manually
         // It will automatically filter based on userOwnsCourse
         
-        // Only dispatch event if there's a video for this lesson
+        // Always dispatch event so JavaScript can handle video/no-video transition
         $videoId = $this->getYoutubeVideoId();
-        if ($videoId) {
-            $this->dispatch('lesson-changed', lessonId: $lessonId, videoId: $videoId, startSeconds: $this->getCurrentLessonWatchedSeconds());
-        }
+        $this->dispatch('lesson-changed', lessonId: $lessonId, videoId: $videoId, startSeconds: $this->getCurrentLessonWatchedSeconds());
     }
 
     /**
@@ -165,6 +163,17 @@ class Learn extends Page
         if (!$this->userOwnsCourse) return;
 
         $user = Auth::user();
+
+        // Don't overwrite progress if lesson is already completed
+        // Completed lessons should keep their full duration as watched_seconds
+        $existing = LessonProgress::where('user_id', $user->id)
+            ->where('lesson_id', $this->currentLesson->id)
+            ->first();
+        
+        if ($existing && $existing->is_completed) {
+            // Lesson already completed, don't overwrite watched_seconds
+            return;
+        }
 
         LessonProgress::updateOrCreate(
             [
@@ -188,6 +197,17 @@ class Learn extends Page
         
         $user = Auth::user();
 
+        // Don't overwrite progress if lesson is already completed
+        // Completed lessons should keep their full duration as watched_seconds
+        $existing = LessonProgress::where('user_id', $user->id)
+            ->where('lesson_id', $lessonId)
+            ->first();
+        
+        if ($existing && $existing->is_completed) {
+            // Lesson already completed, don't overwrite watched_seconds
+            return;
+        }
+
         LessonProgress::updateOrCreate(
             [
                 'user_id' => $user->id,
@@ -207,19 +227,55 @@ class Learn extends Page
         if (!$this->userOwnsCourse) return;
 
         $user = Auth::user();
+        
+        // Store current lesson info before advancing
+        $completedLessonId = $this->currentLesson->id;
+        $completedLessonDuration = $this->currentLesson->duration ?? 0;
+        
+        // Check if lesson was ALREADY completed before this call
+        // If already completed, user is just rewatching - don't auto-advance
+        $wasAlreadyCompleted = in_array($completedLessonId, $this->completedLessonIds);
 
-        LessonProgress::updateOrCreate(
+        // When marking as complete, set watched_seconds to full lesson duration
+        // This ensures progress shows 100% even if user didn't watch till the end
+        $progress = LessonProgress::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'lesson_id' => $this->currentLesson->id,
+                'lesson_id' => $completedLessonId,
             ],
             [
                 'is_completed' => true,
                 'completed_at' => now(),
+                'watched_seconds' => $completedLessonDuration,
             ]
         );
+        
+        // Force save to database immediately
+        $progress->save();
+        
+        // Log for debugging
+        \Log::info('Marked lesson as complete', [
+            'lesson_id' => $completedLessonId,
+            'duration' => $completedLessonDuration,
+            'watched_seconds_saved' => $progress->watched_seconds,
+            'is_completed' => $progress->is_completed,
+            'was_already_completed' => $wasAlreadyCompleted,
+        ]);
 
-        $this->completedLessonIds[] = $this->currentLesson->id;
+        // Add to completed list if not already there
+        if (!$wasAlreadyCompleted) {
+            $this->completedLessonIds[] = $completedLessonId;
+        }
+        
+        // Refresh computed properties to get latest data
+        unset($this->topics);
+
+        // IMPORTANT: Only auto-advance if this was a NEW completion
+        // If user is rewatching a completed video, don't auto-advance
+        if ($wasAlreadyCompleted) {
+            \Log::info('Lesson was already completed - no auto-advance (rewatch mode)');
+            return;
+        }
 
         // Auto-advance to next lesson
         $this->goToNextLesson();
@@ -242,6 +298,10 @@ class Learn extends Page
                 if ($foundCurrent) {
                     $this->currentLesson = $lesson;
                     $this->lessonId = $lesson->id;
+                    
+                    // Dispatch event to update video player
+                    $videoId = $this->getYoutubeVideoId();
+                    $this->dispatch('lesson-changed', lessonId: $this->currentLesson->id, videoId: $videoId, startSeconds: $this->getCurrentLessonWatchedSeconds());
                     return;
                 }
                 if ($this->currentLesson && $lesson->id === $this->currentLesson->id) {
@@ -263,6 +323,10 @@ class Learn extends Page
                     if ($previousLesson) {
                         $this->currentLesson = $previousLesson;
                         $this->lessonId = $previousLesson->id;
+                        
+                        // Dispatch event to update video player
+                        $videoId = $this->getYoutubeVideoId();
+                        $this->dispatch('lesson-changed', lessonId: $this->currentLesson->id, videoId: $videoId, startSeconds: $this->getCurrentLessonWatchedSeconds());
                     }
                     return;
                 }
@@ -329,6 +393,11 @@ class Learn extends Page
     public function getCurrentLessonWatchedSeconds(): int
     {
         if (!$this->currentLesson) {
+            return 0;
+        }
+
+        // If lesson is already completed, always start from 0 for rewatch
+        if (in_array($this->currentLesson->id, $this->completedLessonIds)) {
             return 0;
         }
 

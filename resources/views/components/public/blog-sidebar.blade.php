@@ -69,15 +69,8 @@
                 @foreach($recentArticles as $article)
                     <a href="{{ url('/blog/' . $article->slug) }}" class="flex items-start space-x-3 group">
                         <div class="w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                            @php
-                                $imageUrl = $article->featured_image 
-                                    ? (str_starts_with($article->featured_image, 'http') 
-                                        ? $article->featured_image 
-                                        : asset('storage/' . $article->featured_image))
-                                    : 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=200';
-                            @endphp
                             <img 
-                                src="{{ $imageUrl }}" 
+                                src="{{ $article->featured_image_url ?? 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=200' }}" 
                                 alt="{{ $article->title }}"
                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 loading="lazy"

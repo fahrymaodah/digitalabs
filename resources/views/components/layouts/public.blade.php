@@ -20,6 +20,18 @@
     {{-- Additional meta from pages --}}
     @stack('meta')
 
+    <!-- Google Analytics 4 -->
+    @if(config('analytics.property_id'))
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('analytics.measurement_id', env('ANALYTICS_MEASUREMENT_ID')) }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ config('analytics.measurement_id', env('ANALYTICS_MEASUREMENT_ID')) }}');
+    </script>
+    @endif
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">

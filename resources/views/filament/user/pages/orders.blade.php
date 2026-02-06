@@ -107,7 +107,7 @@
                 <x-heroicon-o-shopping-bag class="w-12 h-12 mx-auto text-gray-400 mb-4" />
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No orders yet</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">Your order history will appear here after your first purchase.</p>
-                <a href="/" class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium">
+                <a href="/courses" class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium">
                     Browse Courses
                 </a>
             </div>

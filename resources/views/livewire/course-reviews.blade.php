@@ -38,7 +38,7 @@
         @foreach($this->reviews as $review)
         <div class="border-b border-gray-100 pb-6" wire:key="review-{{ $review->id }}">
             <div class="flex items-start gap-4">
-                <img src="{{ $review->user->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($review->user->name) }}" 
+                <img src="{{ $review->user->avatar_url }}" 
                      alt="{{ $review->user->name }}"
                      class="w-12 h-12 rounded-full object-cover">
                 <div class="flex-1">

@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Lesson extends Model
 {
@@ -17,6 +19,7 @@ class Lesson extends Model
         'order',
         'is_free',
         'is_title_hidden',
+        'uuid',
     ];
 
     protected $casts = [
@@ -25,6 +28,31 @@ class Lesson extends Model
         'is_free' => 'boolean',
         'is_title_hidden' => 'boolean',
     ];
+
+    // ==================== BOOT ====================
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-generate UUID when creating new lesson
+        static::creating(function ($lesson) {
+            if (empty($lesson->uuid)) {
+                $lesson->uuid = Str::uuid();
+            }
+        });
+    }
+
+    // ==================== ROUTE KEY ====================
+
+    /**
+     * Get the route key for the model (for route model binding with UUID)
+     */
+    public function getRouteKeyName(): string
+    {
+        // Return 'id' by default, use explicit route binding for UUID
+        return 'id';
+    }
 
     // ==================== RELATIONSHIPS ====================
 

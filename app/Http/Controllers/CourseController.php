@@ -123,4 +123,78 @@ class CourseController extends Controller
             'relatedCourses'
         ));
     }
+
+    /**
+     * Watch free lesson (public access without login)
+     */
+    public function watch(string $courseSlug, string $lessonUuid)
+    {
+        // Get course with all topics and lessons
+        $course = Course::with(['category', 'topics' => function ($query) {
+                $query->orderBy('order');
+            }, 'topics.lessons' => function ($query) {
+                $query->orderBy('order');
+            }])
+            ->where('slug', $courseSlug)
+            ->where('status', 'published')
+            ->firstOrFail();
+
+        // Get lesson by UUID and verify it's free
+        $lesson = \App\Models\Lesson::where('uuid', $lessonUuid)
+            ->whereHas('topic', function ($query) use ($course) {
+                $query->where('course_id', $course->id);
+            })
+            ->firstOrFail();
+
+        // Check if lesson is free
+        if (!$lesson->is_free) {
+            abort(403, 'Lesson ini tidak tersedia untuk preview gratis. Silakan beli course untuk mengakses semua materi.');
+        }
+
+        // Get all free lessons for prev/next navigation
+        $freeLessons = \App\Models\Lesson::where('is_free', true)
+            ->whereHas('topic', function ($query) use ($course) {
+                $query->where('course_id', $course->id);
+            })
+            ->with('topic')
+            ->orderBy('order')
+            ->get();
+
+        // Find current position in free lessons list
+        $currentIndex = $freeLessons->search(fn($l) => $l->id === $lesson->id);
+        $prevLesson = $currentIndex > 0 ? $freeLessons[$currentIndex - 1] : null;
+        $nextLesson = $currentIndex < $freeLessons->count() - 1 ? $freeLessons[$currentIndex + 1] : null;
+
+        // Extract YouTube video ID
+        $videoId = $this->extractYoutubeVideoId($lesson->youtube_url);
+
+        // Course stats for display
+        $totalLessons = $course->topics->sum(fn($topic) => $topic->lessons->count());
+        $freeLessonsCount = $freeLessons->count();
+
+        return view('courses.watch', compact(
+            'course',
+            'lesson',
+            'freeLessons',
+            'prevLesson',
+            'nextLesson',
+            'videoId',
+            'totalLessons',
+            'freeLessonsCount'
+        ));
+    }
+
+    /**
+     * Extract YouTube video ID from URL
+     */
+    private function extractYoutubeVideoId(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+
+        preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches);
+        
+        return $matches[1] ?? null;
+    }
 }

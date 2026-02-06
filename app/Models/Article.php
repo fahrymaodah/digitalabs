@@ -56,6 +56,21 @@ class Article extends Model
 
     // ==================== ACCESSORS ====================
 
+    public function getFeaturedImageUrlAttribute(): ?string
+    {
+        if (!$this->featured_image) {
+            return null;
+        }
+
+        // If already a full URL (external image)
+        if (filter_var($this->featured_image, FILTER_VALIDATE_URL)) {
+            return $this->featured_image;
+        }
+
+        // If local storage path
+        return asset('storage/' . $this->featured_image);
+    }
+
     public function getIsPublishedAttribute(): bool
     {
         return $this->status === 'published' 

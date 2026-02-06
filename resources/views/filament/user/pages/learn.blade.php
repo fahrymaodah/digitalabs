@@ -1,8 +1,98 @@
 <x-filament-panels::page>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.8.4/plyr.css" />
+    {{-- YouTube Branding Hide Styles (same as watch.blade.php) --}}
+    <style>
+        :root {
+            --plyr-color-main: #f97316;
+        }
+
+        /* Tutor LMS-like wrapper for YouTube iframe */
+        .tutor-video-player {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+        }
+
+        /* Loading spinner overlay */
+        .tutor-video-player .loading-spinner {
+            position: absolute;
+            inset: 0;
+            background: #000;
+            z-index: 10;
+        }
+
+        .tutor-video-player .loading-spinner::before {
+            content: "";
+            box-sizing: border-box;
+            position: absolute;
+            top: calc(50% - 25px);
+            left: calc(50% - 25px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #f97316;
+            animation: learn-spinner 0.7s linear infinite;
+        }
+
+        @keyframes learn-spinner {
+            to { transform: rotate(360deg); }
+        }
+
+        .tutor-video-player .loading-spinner.hide {
+            display: none !important;
+        }
+
+        /* IMPORTANT: Let Plyr use its default YouTube embed crop */
+        /* WordPress plyr.css: padding-bottom:240%; transform:translateY(-38.28125%) */
+        /* DO NOT override this! Plyr handles YouTube branding hiding internally */
+
+        /* Tutor Pro additional crop technique for YouTube - EXACT WordPress values */
+        .tutor-video-player .plyr--youtube iframe {
+            top: -50%;
+            height: 200% !important;
+        }
+    </style>
+
     @if($this->course && $this->currentLesson)
         <div class="flex flex-col lg:flex-row gap-6">
-            {{-- Sidebar: Course Content --}}
-            <div class="w-full lg:w-80 flex-shrink-0">
+            {{-- MOBILE: Progress Section (Order 1 - paling atas) --}}
+            <div class="w-full lg:hidden order-1 bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white">{{ $this->course->title }}</h3>
+                
+                @if($userOwnsCourse)
+                    <div class="mt-3">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div id="mobile-course-progress-bar" 
+                                 class="bg-amber-500 h-2 rounded-full transition-all duration-300" 
+                                 style="width: {{ $this->getCourseTotalDuration() > 0 ? min(100, round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1)) : 0 }}%"
+                                 data-total-duration="{{ $this->getCourseTotalDuration() }}"></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <span id="mobile-course-percent" 
+                                  class="text-xs font-medium text-gray-900 dark:text-white"
+                                  data-base-percent="{{ $this->getCourseTotalDuration() > 0 ? round((($this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson)) / $this->getCourseTotalDuration()) * 100, 1) : 0 }}">
+                                {{ $this->getCourseTotalDuration() > 0 ? round(($this->getCourseWatchedDuration() / $this->getCourseTotalDuration()) * 100, 1) : 0 }}% complete</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                <span id="mobile-course-progress" 
+                                      data-base-duration="{{ $this->getCourseWatchedDuration() - $this->getLessonWatchedSeconds($this->currentLesson) }}"
+                                      data-total-duration="{{ $this->getCourseTotalDuration() }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseWatchedDuration()) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getCourseTotalDuration()) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> 
+                                {{ count($this->completedLessonIds) }}/{{ $this->course->lessons()->count() }} lessons
+                            </span>
+                        </div>
+                    </div>
+                @else
+                    <div class="mt-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <x-heroicon-o-eye class="w-4 h-4 mr-1" />
+                            Free Preview
+                        </span>
+                    </div>
+                @endif
+            </div>
+
+            {{-- DESKTOP: Sidebar dengan Progress + Curriculum --}}
+            <div class="hidden lg:block w-full lg:w-80 flex-shrink-0">
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow sticky top-4">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="font-semibold text-gray-900 dark:text-white">{{ $this->course->title }}</h3>
@@ -30,7 +120,6 @@
                                 </div>
                             </div>
                         @else
-                            {{-- Free Preview Badge --}}
                             <div class="mt-3">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                     <x-heroicon-o-eye class="w-4 h-4 mr-1" />
@@ -87,16 +176,19 @@
                 </div>
             </div>
 
-            {{-- Main: Video Player --}}
-            <div class="flex-1">
+            {{-- Video Player (Order 2 di mobile - tengah) --}}
+            <div class="flex-1 order-2 lg:order-none">
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
                     {{-- Video - wire:ignore prevents Livewire from destroying the YouTube player --}}
-                    <div class="aspect-video bg-black" wire:ignore style="position: relative;">
-                        {{-- youtube-player div - JavaScript controls content --}}
-                        <div id="youtube-player" 
+                    <div class="aspect-video bg-black tutor-video-player" wire:ignore style="position: relative;">
+                        {{-- Loading spinner (same as watch.blade.php) --}}
+                        <div id="learn-loading-spinner" class="loading-spinner" aria-hidden="true"></div>
+                        {{-- Plyr embed container (JavaScript controls content) --}}
+                        <div id="youtube-player" class="plyr__video-embed tutorPlayer"
                             data-lesson-id="{{ $this->currentLesson->id }}" 
                             data-video-id="{{ $this->getYoutubeVideoId() }}" 
-                            data-start-seconds="{{ $this->getCurrentLessonWatchedSeconds() }}"></div>
+                            data-start-seconds="{{ $this->getCurrentLessonWatchedSeconds() }}"
+                            data-is-completed="{{ in_array($this->currentLesson->id, $this->completedLessonIds) ? 'true' : 'false' }}"></div>
                         {{-- No-video message container - separate from youtube-player --}}
                         <div id="no-video-message" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; align-items: center; justify-content: center;">
                             <div style="text-align: center;">
@@ -140,20 +232,20 @@
                             <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                                 <button 
                                     wire:click="goToPreviousLesson"
-                                    class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-sm">
-                                    <x-heroicon-o-chevron-left class="w-4 h-4 mr-1" />
-                                    Previous
+                                    class="inline-flex items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium text-sm"
+                                    title="Previous Lesson">
+                                    <x-heroicon-o-chevron-left class="w-5 h-5" />
                                 </button>
 
                                 @if(!in_array($this->currentLesson->id, $this->completedLessonIds))
                                     <button 
                                         wire:click="markAsComplete"
-                                        class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm">
+                                        class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-medium text-sm flex-1 justify-center md:flex-initial">
                                         <x-heroicon-o-check class="w-4 h-4 mr-1" />
                                         Mark as Complete
                                     </button>
                                 @else
-                                    <span class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg font-medium text-sm">
+                                    <span class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded-lg font-medium text-sm flex-1 justify-center md:flex-initial">
                                         <x-heroicon-s-check-circle class="w-4 h-4 mr-1" />
                                         Completed
                                     </span>
@@ -161,9 +253,9 @@
 
                                 <button 
                                     wire:click="goToNextLesson"
-                                    class="inline-flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm">
-                                    Next
-                                    <x-heroicon-o-chevron-right class="w-4 h-4 ml-1" />
+                                    class="inline-flex items-center justify-center p-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 font-medium text-sm"
+                                    title="Next Lesson">
+                                    <x-heroicon-o-chevron-right class="w-5 h-5" />
                                 </button>
                             </div>
                         @else
@@ -183,6 +275,57 @@
                     </div>
                 </div>
             </div>
+
+            {{-- MOBILE: Curriculum Section (Order 3 - paling bawah) --}}
+            <div class="w-full lg:hidden order-3 bg-white dark:bg-gray-800 rounded-xl shadow">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Course Curriculum</h3>
+                </div>
+                <div class="max-h-[50vh] overflow-y-auto">
+                    @foreach($this->topics as $topic)
+                        <div class="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                            <div class="p-4 bg-gray-50 dark:bg-gray-900">
+                                <h4 class="font-medium text-gray-900 dark:text-white text-sm">{{ $topic->title }}</h4>
+                                @if($userOwnsCourse)
+                                    <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                        <span id="mobile-topic-progress-{{ $topic->id }}" data-base-duration="{{ $this->getTopicWatchedDuration($topic) - $this->getLessonWatchedSeconds($this->currentLesson) }}">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicWatchedDuration($topic)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($this->getTopicTotalDuration($topic)) }}
+                                    </p>
+                                @endif
+                            </div>
+                            <ul>
+                                @foreach($topic->lessons as $lesson)
+                                    <li>
+                                        <button 
+                                            wire:click="selectLesson({{ $lesson->id }})"
+                                            class="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
+                                                {{ $this->currentLesson && $this->currentLesson->id === $lesson->id ? 'bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500' : '' }}">
+                                            @if(in_array($lesson->id, $this->completedLessonIds))
+                                                <x-heroicon-s-check-circle class="w-5 h-5 text-green-500 flex-shrink-0" />
+                                            @else
+                                                <x-heroicon-o-play-circle class="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                            @endif
+                                            <div class="flex-1">
+                                                <span class="text-sm block {{ $this->currentLesson && $this->currentLesson->id === $lesson->id ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-gray-700 dark:text-gray-300' }}">
+                                                    {{ $lesson->title }}
+                                                </span>
+                                                @if($userOwnsCourse && $lesson->duration)
+                                                    @if($this->currentLesson && $this->currentLesson->id === $lesson->id)
+                                                        <span class="text-xs text-gray-400"><span id="mobile-lesson-progress">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getLessonWatchedSeconds($lesson)) }}</span> / {{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
+                                                    @else
+                                                        <span class="text-xs text-gray-400">{{ \App\Filament\User\Pages\Learn::formatDuration($this->getLessonWatchedSeconds($lesson)) }} / {{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
+                                                    @endif
+                                                @elseif(!$userOwnsCourse && $lesson->duration)
+                                                    <span class="text-xs text-gray-400">{{ \App\Filament\User\Pages\Learn::formatDuration($lesson->duration) }}</span>
+                                                @endif
+                                            </div>
+                                        </button>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
     @else
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-12 text-center">
@@ -192,14 +335,9 @@
         </div>
     @endif
 
-    @if($this->getYoutubeVideoId())
     @push('scripts')
+    <script src="https://cdn.plyr.io/3.8.4/plyr.polyfilled.js"></script>
     <script>
-        // Load YouTube IFrame API
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var player;
         var saveInterval;
@@ -211,13 +349,49 @@
         var activeDisplayIntervalId = null;  // Track the active display interval
         var isInitialLoad = true;  // Track if this is initial page load (not auto-play)
 
-        function onYouTubeIframeAPIReady() {
-            console.log('YouTube API ready, isCreatingPlayer:', isCreatingPlayer);
+        // Show loading spinner (called on lesson change)
+        function showLoadingSpinner() {
+            var videoContainer = document.querySelector('.tutor-video-player');
+            if (!videoContainer) return;
+            
+            // Remove existing spinner if any
+            var existingSpinner = document.getElementById('learn-loading-spinner');
+            if (existingSpinner) {
+                existingSpinner.remove();
+            }
+            
+            // Create new spinner
+            var spinner = document.createElement('div');
+            spinner.id = 'learn-loading-spinner';
+            spinner.className = 'loading-spinner';
+            spinner.setAttribute('aria-hidden', 'true');
+            videoContainer.insertBefore(spinner, videoContainer.firstChild);
+        }
+
+        function initPlayer() {
+            console.log('Plyr init, isCreatingPlayer:', isCreatingPlayer);
+            // Check if current lesson has video
+            var playerEl = document.getElementById('youtube-player');
+            if (playerEl) {
+                var videoId = playerEl.getAttribute('data-video-id');
+                if (!videoId || videoId === 'null' || videoId === '') {
+                    console.log('No video on initial load, showing no-video message');
+                    var noVideoEl = document.getElementById('no-video-message');
+                    if (noVideoEl) {
+                        noVideoEl.style.display = 'flex';
+                    }
+                    playerEl.style.display = 'none';
+                    return;
+                }
+            }
+            
             // Only create player on initial load, not during lesson changes
             if (!isCreatingPlayer && !player) {
                 createPlayer();
             }
         }
+
+        document.addEventListener('DOMContentLoaded', initPlayer);
 
         function createPlayer() {
             if (isCreatingPlayer) {
@@ -256,14 +430,6 @@
             
             console.log('Creating player for lesson', lessonId, 'video', videoId, 'start at', startSeconds);
             
-            // Check YouTube API is available
-            if (typeof YT === 'undefined' || !YT.Player) {
-                console.log('YouTube API not ready, retrying...');
-                isCreatingPlayer = false;
-                setTimeout(createPlayer, 500);
-                return;
-            }
-            
             // Final cleanup before creating
             if (player) {
                 try {
@@ -291,34 +457,72 @@
             console.log('Should autoplay:', shouldAutoplay, 'isInitialLoad:', isInitialLoad);
             
             try {
-                // Create new player with autoplay in playerVars if transitioning
-                player = new YT.Player('youtube-player', {
-                    height: '100%',
-                    width: '100%',
-                    videoId: videoId,
-                    playerVars: {
-                        'rel': 0,
-                        'start': startSeconds,
-                        'autoplay': shouldAutoplay ? 1 : 0  // Use YouTube's native autoplay
-                    },
-                    events: {
-                        'onReady': function(event) {
-                            console.log('Player ready, setting time display');
-                            // Update display immediately when player is ready
-                            setTimeout(() => {
-                                updateDisplayProgress();
-                                if (isInitialLoad) {
-                                    console.log('Initial load - autoplay was disabled');
-                                    isInitialLoad = false;  // Mark initial load as done
-                                } else {
-                                    console.log('Transition load - autoplay should have started via playerVars');
-                                }
-                            }, 100);
-                        },
-                        'onStateChange': onPlayerStateChange,
-                        'onError': function(event) {
-                            console.log('Player error:', event.data);
+                var src = "https://www.youtube.com/embed/" + videoId + "?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1";
+                if (startSeconds && startSeconds > 0) {
+                    src += "&start=" + startSeconds;
+                }
+
+                playerEl.innerHTML = '<iframe src="' + src + '" allowfullscreen allow="autoplay; encrypted-media"></iframe>';
+
+                // Create Plyr instance
+                player = new Plyr(playerEl, {
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'pip', 'airplay', 'fullscreen'],
+                    hideControls: true,
+                    resetOnEnd: false,
+                    keyboard: { focused: true, global: false },
+                    clickToPlay: true,
+                    autoplay: shouldAutoplay,
+                    youtube: {
+                        noCookie: false,
+                        rel: 0,
+                        showinfo: 0,
+                        iv_load_policy: 3,
+                        modestbranding: 1
+                    }
+                });
+
+                player.on('ready', function() {
+                    console.log('Player ready, setting time display');
+                    // Remove loading spinner after 2 seconds delay (same as watch.blade.php)
+                    setTimeout(function() {
+                        var spinner = document.getElementById('learn-loading-spinner');
+                        if (spinner) {
+                            spinner.remove();
                         }
+                    }, 1000);
+
+                    if (startSeconds && startSeconds > 0) {
+                        player.currentTime = startSeconds;
+                    }
+
+                    // Update display immediately when player is ready
+                    setTimeout(function() {
+                        updateDisplayProgress();
+                        if (isInitialLoad) {
+                            console.log('Initial load - autoplay was disabled');
+                            isInitialLoad = false;  // Mark initial load as done
+                        } else {
+                            console.log('Transition load - autoplay should have started');
+                        }
+                    }, 100);
+                });
+
+                player.on('play', handlePlayerPlay);
+                player.on('pause', handlePlayerPause);
+                player.on('ended', handlePlayerEnded);
+
+                // EXACT WordPress poster opacity control (tutor-front.js)
+                player.on('play', function() {
+                    var poster = document.querySelector('.plyr--youtube.plyr__poster-enabled .plyr__poster');
+                    if (poster) {
+                        poster.style.opacity = '0';
+                    }
+                });
+
+                player.on('pause', function() {
+                    var poster = document.querySelector('.plyr--youtube.plyr__poster-enabled .plyr__poster');
+                    if (poster) {
+                        poster.style.opacity = '1';
                     }
                 });
                 
@@ -327,7 +531,11 @@
                 player.currentLessonId = currentLessonId;
                 player.currentVideoId = videoId;
                 
-                console.log('Player created successfully with video:', videoId, 'for lesson:', currentLessonId);
+                // Track if lesson is already completed (for rewatch feature)
+                var isCompleted = playerContainer.getAttribute('data-is-completed') === 'true';
+                player.isLessonCompleted = isCompleted;
+                
+                console.log('Player created successfully with video:', videoId, 'for lesson:', currentLessonId, 'isCompleted:', isCompleted);
                 
                 // Clear pending data after successful creation
                 if (pendingPlayerData && pendingPlayerData.lessonId == lessonId) {
@@ -354,11 +562,11 @@
         function updateDisplayProgress() {
             // Only update if the current player is still the active one
             // This prevents old display intervals from overwriting current player display
-            if (!player || !player.getCurrentTime) {
+            if (!player || typeof player.currentTime !== 'number') {
                 return;
             }
             
-            var currentTime = Math.floor(player.getCurrentTime());
+            var currentTime = Math.floor(player.currentTime);
             
             // Update main area progress
             var mainProgressEl = document.getElementById('current-lesson-progress');
@@ -372,11 +580,24 @@
                 sidebarLessonProgressEl.textContent = formatDuration(currentTime);
             }
             
+            // Update mobile curriculum lesson progress
+            var mobileLessonProgressEl = document.getElementById('mobile-lesson-progress');
+            if (mobileLessonProgressEl) {
+                mobileLessonProgressEl.textContent = formatDuration(currentTime);
+            }
+            
             // Update sidebar topic progress (add current lesson duration to existing)
             var topicProgressEl = document.querySelector('[id^="sidebar-topic-progress-"]');
             if (topicProgressEl) {
                 var baseDuration = parseInt(topicProgressEl.getAttribute('data-base-duration')) || 0;
                 topicProgressEl.textContent = formatDuration(baseDuration + currentTime);
+            }
+            
+            // Update mobile curriculum topic progress (add current lesson duration to existing)
+            var mobileTopicProgressEl = document.querySelector('[id^="mobile-topic-progress-"]');
+            if (mobileTopicProgressEl) {
+                var baseDuration = parseInt(mobileTopicProgressEl.getAttribute('data-base-duration')) || 0;
+                mobileTopicProgressEl.textContent = formatDuration(baseDuration + currentTime);
             }
             
             // Update sidebar course progress (time display)
@@ -401,95 +622,128 @@
                     courseProgressBarEl.style.width = percent + '%';
                 }
             }
+            
+            // Update MOBILE course progress (time display)
+            var mobileProgressEl = document.getElementById('mobile-course-progress');
+            if (mobileProgressEl) {
+                var baseDuration = parseInt(mobileProgressEl.getAttribute('data-base-duration')) || 0;
+                var totalDuration = parseInt(mobileProgressEl.getAttribute('data-total-duration')) || 1;
+                var totalWatched = baseDuration + currentTime;
+                mobileProgressEl.textContent = formatDuration(totalWatched);
+                
+                // Update mobile course progress percentage
+                var mobilePercentEl = document.getElementById('mobile-course-percent');
+                if (mobilePercentEl) {
+                    var percent = Math.min(100, ((totalWatched / totalDuration) * 100)).toFixed(1);
+                    mobilePercentEl.textContent = percent + '% complete';
+                }
+                
+                // Update mobile course progress bar
+                var mobileProgressBarEl = document.getElementById('mobile-course-progress-bar');
+                if (mobileProgressBarEl) {
+                    var percent = Math.min(100, ((totalWatched / totalDuration) * 100));
+                    mobileProgressBarEl.style.width = percent + '%';
+                }
+            }
         }
 
-        function onPlayerStateChange(event) {
-            // YT.PlayerState.PLAYING = 1
-            if (event.data == YT.PlayerState.PLAYING) {
-                console.log('Player playing for lesson', currentLessonId);
-                
-                // Mark initial load as done - we're now actively using the player
-                // This handles case where event listeners register after auto-advance
-                if (isInitialLoad) {
-                    console.log('First play detected - marking initial load complete');
-                    isInitialLoad = false;
-                }
-                
-                // Clear existing intervals first
-                if (displayInterval) {
-                    clearInterval(displayInterval);
-                    displayInterval = null;
-                }
-                if (saveInterval) {
-                    clearInterval(saveInterval);
-                    saveInterval = null;
-                }
-                
-                // Update display every second
-                displayInterval = setInterval(function() {
-                    updateDisplayProgress();
-                }, 1000);
-                
-                // Save to server every 5 seconds
-                saveInterval = setInterval(saveProgress, 5000);
+        function handlePlayerPlay() {
+            console.log('Player playing for lesson', currentLessonId);
+            
+            // Mark initial load as done - we're now actively using the player
+            // This handles case where event listeners register after auto-advance
+            if (isInitialLoad) {
+                console.log('First play detected - marking initial load complete');
+                isInitialLoad = false;
             }
-            // YT.PlayerState.PAUSED = 2
-            else if (event.data == YT.PlayerState.PAUSED) {
-                console.log('Player paused');
-                saveProgress();
-                if (saveInterval) {
-                    clearInterval(saveInterval);
-                    saveInterval = null;
-                }
-                if (displayInterval) {
-                    clearInterval(displayInterval);
-                    displayInterval = null;
-                }
+            
+            // Clear existing intervals first
+            if (displayInterval) {
+                clearInterval(displayInterval);
+                displayInterval = null;
             }
-            // YT.PlayerState.ENDED = 0
-            else if (event.data == YT.PlayerState.ENDED) {
-                console.log('Player ended for lesson', currentLessonId);
-                
-                // IMPORTANT: Guard against old player emitting ENDED event
-                // Use player object's tracked lessonId (more reliable than DOM which Livewire can reset)
-                if (!player || !player.currentLessonId) {
-                    console.log('Player not properly initialized, ignoring ENDED');
-                    return;
+            if (saveInterval) {
+                clearInterval(saveInterval);
+                saveInterval = null;
+            }
+            
+            // Update display every second
+            displayInterval = setInterval(function() {
+                updateDisplayProgress();
+            }, 1000);
+            
+            // Save to server every 5 seconds
+            saveInterval = setInterval(saveProgress, 5000);
+        }
+
+        function handlePlayerPause() {
+            console.log('Player paused');
+            saveProgress();
+            if (saveInterval) {
+                clearInterval(saveInterval);
+                saveInterval = null;
+            }
+            if (displayInterval) {
+                clearInterval(displayInterval);
+                displayInterval = null;
+            }
+        }
+
+        function handlePlayerEnded() {
+            console.log('Player ended for lesson', currentLessonId);
+            
+            // IMPORTANT: Guard against old player emitting ENDED event
+            // Use player object's tracked lessonId (more reliable than DOM which Livewire can reset)
+            if (!player || !player.currentLessonId) {
+                console.log('Player not properly initialized, ignoring ENDED');
+                return;
+            }
+            
+            if (currentLessonId !== player.currentLessonId) {
+                console.log('ENDED event from old player. Current lesson:', currentLessonId, 'Player tracked lesson:', player.currentLessonId);
+                return;
+            }
+            
+            // Save final progress
+            saveProgress();
+            
+            // Clear intervals
+            if (saveInterval) {
+                clearInterval(saveInterval);
+                saveInterval = null;
+            }
+            if (displayInterval) {
+                clearInterval(displayInterval);
+                displayInterval = null;
+            }
+            
+            // Check if lesson is already completed - if so, don't auto-advance
+            // This allows rewatching completed videos
+            var isAlreadyCompleted = player.isLessonCompleted || false;
+            
+            if (isAlreadyCompleted) {
+                console.log('Lesson already completed - allowing rewatch, no auto-advance');
+                // Reset video to start for easy replay
+                if (player && typeof player.restart === 'function') {
+                    // Don't auto-restart, just leave it at end so user can click play again
                 }
-                
-                if (currentLessonId !== player.currentLessonId) {
-                    console.log('ENDED event from old player. Current lesson:', currentLessonId, 'Player tracked lesson:', player.currentLessonId);
-                    return;
-                }
-                
-                console.log('Processing ENDED event - auto-marking complete and advancing...');
-                
-                // Save final progress
-                saveProgress();
-                
-                // Clear intervals
-                if (saveInterval) {
-                    clearInterval(saveInterval);
-                    saveInterval = null;
-                }
-                if (displayInterval) {
-                    clearInterval(displayInterval);
-                    displayInterval = null;
-                }
-                
-                // Mark lesson as complete and auto-advance to next lesson
-                // This will also dispatch event to switch player
-                if (typeof Livewire !== 'undefined') {
-                    @this.call('markAsComplete');
-                } else {
-                    console.log('Livewire not ready yet');
-                }
+                return;
+            }
+            
+            console.log('Processing ENDED event - auto-marking complete and advancing...');
+            
+            // Mark lesson as complete and auto-advance to next lesson
+            // This will also dispatch event to switch player
+            if (typeof Livewire !== 'undefined') {
+                @this.call('markAsComplete');
+            } else {
+                console.log('Livewire not ready yet');
             }
         }
 
         function saveProgress() {
-            if (player && player.getCurrentTime) {
-                var currentTime = Math.floor(player.getCurrentTime());
+            if (player && typeof player.currentTime === 'number') {
+                var currentTime = Math.floor(player.currentTime);
                 // Save if time changed and is greater than 0, or if more than 2 seconds have passed since last save
                 if (currentTime > 0 && (currentTime !== lastSavedTime || currentTime - lastSavedTime >= 2)) {
                     lastSavedTime = currentTime;
@@ -512,16 +766,20 @@
         // Listen for lesson change event from Livewire selectLesson() method
         function handleLessonChange(data) {
             console.log('Handling lesson change:', data);
+            console.log('VideoId type:', typeof data.videoId, 'value:', data.videoId, 'isEmpty:', !data.videoId);
             
             // Mark that we're no longer on initial load
             // This enables auto-play for subsequent lessons
             isInitialLoad = false;
             
+            // Show loading spinner for new lesson
+            showLoadingSpinner();
+            
             // FIRST: Save the current video progress before switching
             // IMPORTANT: Use currentLessonId which is the PREVIOUS lesson, not the new one
-            if (player && typeof player.getCurrentTime === 'function' && currentLessonId !== null) {
+            if (player && typeof player.currentTime === 'number' && currentLessonId !== null) {
                 try {
-                    var currentTime = Math.floor(player.getCurrentTime());
+                    var currentTime = Math.floor(player.currentTime);
                     if (currentTime > 0) {
                         console.log('Auto-saving previous video (lesson', currentLessonId, ') progress:', currentTime, 'seconds');
                         // Pass lessonId to saveProgress so it saves to the correct lesson
@@ -532,14 +790,14 @@
                 }
             }
             
-            // If no video ID, just clear player and show no-video message
-            if (!data.videoId) {
-                console.log('No video for this lesson, showing no-video message');
+            // If no video ID (null, undefined, empty string, or 'null' string), clear player and show no-video message
+            if (!data.videoId || data.videoId === 'null' || data.videoId === '' || data.videoId === null || data.videoId === undefined) {
+                console.log('No video for this lesson (videoId:', data.videoId, '), showing no-video message');
                 
                 // Stop and destroy player
-                if (player && typeof player.stopVideo === 'function') {
+                if (player && typeof player.pause === 'function') {
                     try {
-                        player.stopVideo();
+                        player.pause();
                     } catch(e) {}
                 }
                 
@@ -577,6 +835,12 @@
                 if (noVideoEl) {
                     noVideoEl.style.display = 'flex';
                     console.log('No-video message displayed');
+                    
+                    // Remove spinner when showing no-video message
+                    var spinner = document.getElementById('learn-loading-spinner');
+                    if (spinner) {
+                        spinner.remove();
+                    }
                 } else {
                     console.log('ERROR: no-video-message element not found!');
                 }
@@ -605,9 +869,9 @@
             }
             
             // Stop any playing video first
-            if (player && typeof player.stopVideo === 'function') {
+            if (player && typeof player.pause === 'function') {
                 try {
-                    player.stopVideo();
+                    player.pause();
                     console.log('Stopped current video');
                 } catch(e) {
                     console.log('Error stopping video:', e);
@@ -661,11 +925,7 @@
             // Create new player with pending data stored
             setTimeout(() => {
                 console.log('Creating new player with pending data:', pendingPlayerData);
-                if (typeof YT !== 'undefined' && YT.Player) {
-                    createPlayer();
-                } else {
-                    console.log('YouTube API not ready yet');
-                }
+                createPlayer();
             }, 500);
         }
         
@@ -723,11 +983,9 @@
         
         // Also listen to Livewire navigated for safety
         document.addEventListener('livewire:navigated', function() {
-            if (typeof YT !== 'undefined' && YT.Player) {
-                var playerEl = document.getElementById('youtube-player');
-                if (playerEl && !player) {
-                    setTimeout(createPlayer, 100);
-                }
+            var playerEl = document.getElementById('youtube-player');
+            if (playerEl && !player) {
+                setTimeout(createPlayer, 100);
             }
         });
 
@@ -776,5 +1034,4 @@
         }
     </script>
     @endpush
-    @endif
 </x-filament-panels::page>

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AffiliatePayoutResource\Pages;
-use App\Filament\Resources\AffiliatePayoutResource\RelationManagers\CommissionsRelationManager;
 use App\Models\AffiliatePayout;
 use BackedEnum;
 use Filament\Forms\Components\Select;
@@ -145,7 +144,8 @@ class AffiliatePayoutResource extends Resource
     public static function getRelations(): array
     {
         return [
-            CommissionsRelationManager::class,
+            // No direct relation manager needed
+            // Commissions are linked through affiliate
         ];
     }
 

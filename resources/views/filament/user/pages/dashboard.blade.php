@@ -46,28 +46,58 @@
             </div>
             <div class="p-6">
                 @forelse($coursesWithProgress as $courseData)
-                    <div class="flex items-center space-x-4 mb-4 last:mb-0">
-                        @if($courseData['course']->thumbnail)
-                            <img src="{{ Storage::url($courseData['course']->thumbnail) }}" alt="{{ $courseData['course']->title }}" class="w-16 h-16 object-cover rounded-lg">
-                        @else
-                            <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                                <x-heroicon-o-academic-cap class="w-8 h-8 text-gray-400" />
+                    <div class="mb-4 last:mb-0">
+                        {{-- Desktop Layout --}}
+                        <div class="hidden md:flex items-center space-x-4">
+                            @if($courseData['course']->thumbnail)
+                                <img src="{{ Storage::url($courseData['course']->thumbnail) }}" alt="{{ $courseData['course']->title }}" class="w-16 h-16 object-cover rounded-lg">
+                            @else
+                                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                    <x-heroicon-o-academic-cap class="w-8 h-8 text-gray-400" />
+                                </div>
+                            @endif
+                            <div class="flex-1 min-w-0">
+                                <p class="font-medium text-gray-900 dark:text-white truncate">{{ $courseData['course']->title }}</p>
+                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                                    <div class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: {{ $courseData['progress'] }}%"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-1">
+                                    <span class="text-xs font-medium text-gray-900 dark:text-white">{{ $courseData['progress'] }}% complete</span>
+                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['watchedSeconds']) }} / {{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['totalDuration']) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> {{ $courseData['completedLessons'] }}/{{ $courseData['totalLessons'] }} lessons</span>
+                                </div>
                             </div>
-                        @endif
-                        <div class="flex-1 min-w-0">
-                            <p class="font-medium text-gray-900 dark:text-white truncate">{{ $courseData['course']->title }}</p>
-                            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
-                                <div class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: {{ $courseData['progress'] }}%"></div>
-                            </div>
-                            <div class="flex items-center justify-between mt-1">
-                                <span class="text-xs font-medium text-gray-900 dark:text-white">{{ $courseData['progress'] }}% complete</span>
-                                <span class="text-xs text-gray-500 dark:text-gray-400">{{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['watchedSeconds']) }} / {{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['totalDuration']) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> {{ $courseData['completedLessons'] }}/{{ $courseData['totalLessons'] }} lessons</span>
-                            </div>
+                            <a href="{{ url('/dashboard/learn/' . $courseData['course']->slug) }}" 
+                               class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium whitespace-nowrap">
+                                Continue
+                            </a>
                         </div>
-                        <a href="{{ url('/dashboard/learn/' . $courseData['course']->slug) }}" 
-                           class="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium whitespace-nowrap">
-                            Continue
-                        </a>
+
+                        {{-- Mobile Layout --}}
+                        <div class="flex md:hidden flex-col space-y-3">
+                            <div class="flex items-center space-x-4">
+                                @if($courseData['course']->thumbnail)
+                                    <img src="{{ Storage::url($courseData['course']->thumbnail) }}" alt="{{ $courseData['course']->title }}" class="w-16 h-16 object-cover rounded-lg">
+                                @else
+                                    <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                        <x-heroicon-o-academic-cap class="w-8 h-8 text-gray-400" />
+                                    </div>
+                                @endif
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-gray-900 dark:text-white truncate">{{ $courseData['course']->title }}</p>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mt-2">
+                                        <div class="bg-amber-500 h-2 rounded-full transition-all duration-300" style="width: {{ $courseData['progress'] }}%"></div>
+                                    </div>
+                                    <div class="flex flex-col mt-1">
+                                        <span class="text-xs font-medium text-gray-900 dark:text-white">{{ $courseData['progress'] }}% complete</span>
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">{{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['watchedSeconds']) }} / {{ \App\Filament\User\Pages\Dashboard::formatDuration($courseData['totalDuration']) }} <span class="inline-block mx-2 text-lg text-amber-500">•</span> {{ $courseData['completedLessons'] }}/{{ $courseData['totalLessons'] }} lessons</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url('/dashboard/learn/' . $courseData['course']->slug) }}" 
+                               class="w-full mt-1.5 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 text-sm font-medium text-center">
+                                Continue
+                            </a>
+                        </div>
                     </div>
                 @empty
                     <p class="text-gray-500 dark:text-gray-400 text-center py-4">No courses yet. Start learning today!</p>

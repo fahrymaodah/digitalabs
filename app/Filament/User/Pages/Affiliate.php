@@ -5,6 +5,7 @@ namespace App\Filament\User\Pages;
 use App\Models\Affiliate as AffiliateModel;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliatePayout;
+use App\Services\EmailService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,18 @@ class Affiliate extends Page
     public ?string $bank_account_number = null;
     public ?string $bank_account_name = null;
     public ?string $notes = null;
+
+    // Payout form
+    public ?float $payout_amount = null;
+
+    // Edit bank mode
+    public bool $isEditingBank = false;
+
+    // Pagination
+    public int $commissionsPerPage = 5;
+    public int $payoutsPerPage = 5;
+    public int $commissionsPage = 1;
+    public int $payoutsPage = 1;
 
     public function mount(): void
     {
@@ -78,19 +91,102 @@ class Affiliate extends Page
             ->send();
     }
 
+    /**
+     * Toggle bank info edit mode
+     */
+    public function toggleEditBank(): void
+    {
+        $this->isEditingBank = !$this->isEditingBank;
+        
+        // Reset to current values if cancelling
+        if (!$this->isEditingBank && $this->affiliate) {
+            $this->bank_name = $this->affiliate->bank_name;
+            $this->bank_account_number = $this->affiliate->bank_account_number;
+            $this->bank_account_name = $this->affiliate->bank_account_name;
+        }
+    }
+
+    /**
+     * Update bank information
+     */
+    public function updateBankInfo(): void
+    {
+        if (!$this->affiliate) {
+            return;
+        }
+
+        $validated = $this->validate([
+            'bank_name' => 'required|string|max:100',
+            'bank_account_number' => 'required|string|max:30',
+            'bank_account_name' => 'required|string|max:100',
+        ]);
+
+        $this->affiliate->update([
+            'bank_name' => $validated['bank_name'],
+            'bank_account_number' => $validated['bank_account_number'],
+            'bank_account_name' => $validated['bank_account_name'],
+        ]);
+
+        $this->isEditingBank = false;
+
+        Notification::make()
+            ->title('Bank Information Updated')
+            ->body('Your bank account details have been updated successfully.')
+            ->success()
+            ->send();
+    }
+
+    /**
+     * Request payout with custom amount
+     */
     public function requestPayout(): void
     {
-        if (!$this->affiliate || $this->affiliate->pending_earnings < 100000) {
+        if (!$this->affiliate) {
             Notification::make()
-                ->title('Cannot Request Payout')
-                ->body('Minimum payout amount is Rp 100,000')
+                ->title('Error')
+                ->body('Affiliate account not found.')
                 ->danger()
                 ->send();
             return;
         }
 
-        $amount = $this->affiliate->pending_earnings;
+        $pendingEarnings = (float) $this->affiliate->pending_earnings;
 
+        // Validate amount
+        $validated = $this->validate([
+            'payout_amount' => [
+                'required',
+                'numeric',
+                'min:100000',
+            ],
+        ], [
+            'payout_amount.required' => 'Please enter the amount you want to withdraw.',
+            'payout_amount.min' => 'Minimum payout amount is Rp 100,000.',
+        ]);
+
+        $amount = (float) $validated['payout_amount'];
+
+        // Custom validation: amount tidak boleh lebih dari pending earnings
+        if ($amount > $pendingEarnings) {
+            $this->addError('payout_amount', 'Maximum amount is Rp ' . number_format($pendingEarnings, 0, ',', '.') . ' (your pending earnings).');
+            return;
+        }
+
+        // Check if there's a pending payout
+        $hasPendingPayout = AffiliatePayout::where('affiliate_id', $this->affiliate->id)
+            ->whereIn('status', ['pending', 'processing'])
+            ->exists();
+
+        if ($hasPendingPayout) {
+            Notification::make()
+                ->title('Cannot Request Payout')
+                ->body('You already have a pending payout request. Please wait for it to be processed.')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        // Create payout request
         AffiliatePayout::create([
             'affiliate_id' => $this->affiliate->id,
             'amount' => $amount,
@@ -100,12 +196,18 @@ class Affiliate extends Page
             'bank_account_name' => $this->affiliate->bank_account_name,
         ]);
 
-        // Reset pending earnings
-        $this->affiliate->update(['pending_earnings' => 0]);
+        // Note: pending_earnings will be reduced when admin approves the payout
+        // This ensures accurate accounting and allows for cancellation without issues
+
+        // Refresh affiliate
+        $this->affiliate->refresh();
+
+        // Reset form
+        $this->payout_amount = null;
 
         Notification::make()
             ->title('Payout Requested')
-            ->body('Your payout request of Rp ' . number_format($amount, 0, ',', '.') . ' has been submitted.')
+            ->body('Your payout request of Rp ' . number_format($amount, 0, ',', '.') . ' has been submitted. We will process it within 1-3 business days.')
             ->success()
             ->send();
     }
@@ -115,6 +217,7 @@ class Affiliate extends Page
         $data = [
             'affiliate' => $this->affiliate,
             'status' => $this->status,
+            'isEditingBank' => $this->isEditingBank,
         ];
 
         if ($this->affiliate && $this->status === 'approved') {
@@ -129,18 +232,38 @@ class Affiliate extends Page
             // Referral link
             $data['referral_link'] = url('/?ref=' . $this->affiliate->referral_code);
 
-            // Commission history
-            $data['commissions'] = AffiliateCommission::where('affiliate_id', $this->affiliate->id)
+            // Commission history with pagination
+            $commissionsQuery = AffiliateCommission::where('affiliate_id', $this->affiliate->id)
                 ->with('order')
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
+                ->orderBy('created_at', 'desc');
+            
+            // Get total count before pagination
+            $commissionsTotal = $commissionsQuery->count();
+            
+            $data['commissionsPaginated'] = $commissionsQuery->paginate($this->commissionsPerPage, ['*'], 'commissionsPage', $this->commissionsPage);
+            $data['commissions'] = $data['commissionsPaginated']->items();
+            $data['commissionsTotal'] = $commissionsTotal;
 
-            // Payout history
-            $data['payouts'] = AffiliatePayout::where('affiliate_id', $this->affiliate->id)
-                ->orderBy('created_at', 'desc')
-                ->limit(10)
-                ->get();
+            // Payout history with pagination
+            $payoutsQuery = AffiliatePayout::where('affiliate_id', $this->affiliate->id)
+                ->orderBy('created_at', 'desc');
+            
+            // Get total count before pagination
+            $payoutsTotal = $payoutsQuery->count();
+            
+            $data['payoutsPaginated'] = $payoutsQuery->paginate($this->payoutsPerPage, ['*'], 'payoutsPage', $this->payoutsPage);
+            $data['payouts'] = $data['payoutsPaginated']->items();
+            $data['payoutsTotal'] = $payoutsTotal;
+
+            // Check if there's a pending payout
+            $data['hasPendingPayout'] = AffiliatePayout::where('affiliate_id', $this->affiliate->id)
+                ->whereIn('status', ['pending', 'processing'])
+                ->exists();
+
+            // Current pending payout details (if any)
+            $data['pendingPayout'] = AffiliatePayout::where('affiliate_id', $this->affiliate->id)
+                ->whereIn('status', ['pending', 'processing'])
+                ->first();
         }
 
         return $data;

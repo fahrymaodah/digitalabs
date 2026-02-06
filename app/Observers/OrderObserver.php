@@ -41,11 +41,47 @@ class OrderObserver
             ]);
 
             match ($newStatus) {
-                'paid' => $this->emailService->sendPaymentSuccessEmail($order),
-                'failed', 'cancelled' => $this->emailService->sendPaymentFailedEmail($order),
-                'expired' => $this->emailService->sendPaymentFailedEmail($order, 'Waktu pembayaran telah habis'),
+                'paid' => $this->handlePaymentSuccess($order),
+                'failed', 'cancelled' => $this->handlePaymentFailed($order),
+                'expired' => $this->handlePaymentExpired($order),
                 default => null,
             };
         }
+    }
+
+    /**
+     * Handle successful payment
+     */
+    protected function handlePaymentSuccess(Order $order): void
+    {
+        // Send customer email
+        $this->emailService->sendPaymentSuccessEmail($order);
+        
+        // Send admin notification
+        $this->emailService->sendAdminPaymentSuccessEmail($order);
+    }
+
+    /**
+     * Handle failed/cancelled payment
+     */
+    protected function handlePaymentFailed(Order $order): void
+    {
+        // Send customer email
+        $this->emailService->sendPaymentFailedEmail($order);
+        
+        // Send admin notification
+        $this->emailService->sendAdminPaymentFailedEmail($order);
+    }
+
+    /**
+     * Handle expired payment
+     */
+    protected function handlePaymentExpired(Order $order): void
+    {
+        // Send customer email
+        $this->emailService->sendPaymentFailedEmail($order, 'Waktu pembayaran telah habis');
+        
+        // Send admin notification
+        $this->emailService->sendAdminPaymentFailedEmail($order);
     }
 }

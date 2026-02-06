@@ -54,13 +54,8 @@
                 <!-- Image -->
                 <div class="relative group">
                     <a href="{{ route('blog.show', $mainFeatured->slug) }}" class="block overflow-hidden rounded-2xl">
-                        @if($mainFeatured->featured_image)
-                            @php
-                                $imageUrl = str_starts_with($mainFeatured->featured_image, 'http') 
-                                    ? $mainFeatured->featured_image 
-                                    : Storage::url($mainFeatured->featured_image);
-                            @endphp
-                            <img src="{{ $imageUrl }}" 
+                        @if($mainFeatured->featured_image_url)
+                            <img src="{{ $mainFeatured->featured_image_url }}" 
                                  alt="{{ $mainFeatured->title }}"
                                  class="w-full aspect-[4/3] object-cover group-hover:scale-105 transition duration-500">
                         @else

@@ -142,8 +142,7 @@ class ViewOrder extends ViewRecord
                                 TextEntry::make('original_price')
                                     ->label('Original Price')
                                     ->money('IDR')
-                                    ->color('gray')
-                                    ->strikethrough(fn ($record) => $record->price < ($record->original_price ?? $record->price)),
+                                    ->color('gray'),
                                 TextEntry::make('price')
                                     ->label('Purchase Price')
                                     ->money('IDR')

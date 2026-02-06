@@ -64,7 +64,7 @@
                     @if(isset($featuredTestimonial))
                     <div class="absolute -bottom-4 -left-4 lg:left-0 bg-white rounded-2xl shadow-xl p-4 max-w-xs z-20">
                         <div class="flex items-start space-x-3">
-                            <img src="{{ $featuredTestimonial->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($featuredTestimonial->name) }}" 
+                            <img src="{{ $featuredTestimonial->avatar_url }}" 
                                  alt="{{ $featuredTestimonial->name }}"
                                  class="w-12 h-12 rounded-full object-cover">
                             <div>
@@ -190,7 +190,7 @@
                 @forelse($courses as $course)
                 <a href="{{ url('/courses/' . $course->slug) }}" class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition group">
                     <div class="relative">
-                        <img src="{{ $course->thumbnail ?? 'https://placehold.co/600x400/f97316/white?text=' . urlencode($course->title) }}" 
+                        <img src="{{ $course->thumbnail_url ?? 'https://placehold.co/600x400/f97316/white?text=' . urlencode($course->title) }}" 
                              alt="{{ $course->title }}"
                              class="w-full h-48 object-cover group-hover:scale-105 transition duration-300">
                         @if($course->sale_price && $course->sale_price < $course->price)
@@ -262,7 +262,7 @@
                     </div>
                     <p class="text-gray-600 mb-6 line-clamp-4">"{{ $testimonial->content }}"</p>
                     <div class="flex items-center">
-                        <img src="{{ $testimonial->avatar ?? 'https://ui-avatars.com/api/?name=' . urlencode($testimonial->name) . '&background=f97316&color=fff' }}" 
+                        <img src="{{ $testimonial->avatar_url }}" 
                              alt="{{ $testimonial->name }}"
                              class="w-12 h-12 rounded-full object-cover mr-4">
                         <div>

@@ -13,6 +13,19 @@ class AffiliatePayoutObserver
     ) {}
 
     /**
+     * Handle the AffiliatePayout "created" event.
+     * Send notification email to admin for new payout requests
+     */
+    public function created(AffiliatePayout $payout): void
+    {
+        // Send admin notification for new payout request
+        if ($payout->status === 'pending') {
+            $this->emailService->sendAdminPayoutRequestEmail($payout);
+            Log::info('Admin payout request email triggered', ['payout_id' => $payout->id]);
+        }
+    }
+
+    /**
      * Handle the AffiliatePayout "updated" event.
      * Send payout completed email when status changes to completed/paid
      */

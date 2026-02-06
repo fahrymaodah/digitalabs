@@ -42,7 +42,7 @@ class PendingAffiliates extends BaseWidget
                     ->label('Applied')
                     ->since(),
             ])
-            ->recordUrl(fn ($record) => AffiliateResource::getUrl('edit', ['record' => $record]))
+            ->recordUrl(fn (Affiliate $record): string => AffiliateResource::getUrl('edit', ['record' => $record->id]))
             ->paginated(false)
             ->emptyStateHeading('No pending requests')
             ->emptyStateDescription('All affiliate requests have been processed.');

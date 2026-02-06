@@ -13,6 +13,17 @@ class AffiliateObserver
     ) {}
 
     /**
+     * Handle the Affiliate "created" event.
+     * Send admin notification for new affiliate registration
+     */
+    public function created(Affiliate $affiliate): void
+    {
+        // Send admin notification for new affiliate
+        $this->emailService->sendAdminNewAffiliateEmail($affiliate);
+        Log::info('New affiliate admin notification triggered', ['affiliate_id' => $affiliate->id]);
+    }
+
+    /**
      * Handle the Affiliate "updated" event.
      * Send approval email when status changes to approved
      */

@@ -23,6 +23,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 // Course Pages
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
 Route::get('/courses/{slug}', [CourseController::class, 'show'])->name('courses.show');
+Route::get('/courses/{courseSlug}/watch/{lessonUuid}', [CourseController::class, 'watch'])->name('courses.watch');
 
 // Affiliate Public Page
 Route::get('/affiliate', [AffiliatePublicController::class, 'index'])->name('affiliate.index');
@@ -83,10 +84,43 @@ if (config('app.debug')) {
 
     // Email Preview Routes
     Route::get('/dev/email/{type}', function ($type) {
-        $user = \App\Models\User::first() ?? new \App\Models\User([
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
+        // Get real order #229 or fallback to first order
+        $orderModel = \App\Models\Order::find(229) ?? \App\Models\Order::first();
+        
+        if (!$orderModel) {
+            return 'No orders found in database. Please create an order first.';
+        }
+        
+        $orderModel->load(['user', 'items.product', 'coupon']);
+
+        // Get real affiliate or create demo one
+        $affiliateModel = \App\Models\Affiliate::first() ?? \App\Models\Affiliate::updateOrCreate(
+            ['id' => 1],
+            [
+                'user_id' => $orderModel->user_id,
+                'referral_code' => 'DEMO2024',
+                'commission_rate' => 20,
+                'status' => 'pending',
+                'bank_name' => 'BCA',
+                'bank_account_number' => '1234567890',
+                'bank_account_name' => 'Demo User',
+            ]
+        );
+        $affiliateModel->load('user');
+
+        // Create demo payout
+        $payoutModel = \App\Models\AffiliatePayout::create([
+            'affiliate_id' => $affiliateModel->id,
+            'amount' => 500000,
+            'status' => 'pending',
+            'bank_name' => 'BCA',
+            'bank_account_number' => '1234567890',
+            'bank_account_name' => 'Demo User',
         ]);
+        $payoutModel->load('affiliate.user');
+
+        // Create demo objects for non-db emails
+        $user = $orderModel->user;
 
         $course = new \stdClass();
         $course->title = 'Riset dan Produksi Asset di Microstock';
@@ -96,26 +130,26 @@ if (config('app.debug')) {
         $course->duration = 'Lifetime Access';
 
         $order = new \stdClass();
-        $order->id = 1;
-        $order->order_number = 'ORD-' . date('Ymd') . '-001';
+        $order->id = $orderModel->id;
+        $order->order_number = $orderModel->order_number;
         $order->user = $user;
         $order->course = $course;
         $order->original_price = 599000;
         $order->discount_amount = 100000;
         $order->total_price = 499000;
-        $order->payment_url = null; // Will use duitku_payment_url in real orders
-        $order->duitku_payment_url = 'https://sandbox.duitku.com/topup/topupdirectv2.aspx?ref=EXAMPLE123';
-        $order->coupon = null;
+        $order->payment_url = null;
+        $order->duitku_payment_url = $orderModel->duitku_payment_url ?? 'https://sandbox.duitku.com/topup/topupdirectv2.aspx?ref=EXAMPLE123';
+        $order->coupon = $orderModel->coupon;
 
         $affiliate = new \stdClass();
-        $affiliate->id = 1;
-        $affiliate->user = $user;
-        $affiliate->referral_code = 'SARAH2024';
-        $affiliate->commission_rate = 20;
-        $affiliate->status = 'approved';
-        $affiliate->bank_name = 'BCA';
-        $affiliate->bank_account_number = '1234567890';
-        $affiliate->bank_account_name = 'Sarah Marketing';
+        $affiliate->id = $affiliateModel->id;
+        $affiliate->user = $affiliateModel->user;
+        $affiliate->referral_code = $affiliateModel->referral_code;
+        $affiliate->commission_rate = $affiliateModel->commission_rate;
+        $affiliate->status = $affiliateModel->status;
+        $affiliate->bank_name = $affiliateModel->bank_name;
+        $affiliate->bank_account_number = $affiliateModel->bank_account_number;
+        $affiliate->bank_account_name = $affiliateModel->bank_account_name;
 
         $commission = new \stdClass();
         $commission->id = 1;
@@ -125,9 +159,9 @@ if (config('app.debug')) {
         $commission->created_at = now();
 
         $payout = new \stdClass();
-        $payout->id = 1;
+        $payout->id = $payoutModel->id;
         $payout->affiliate = $affiliate;
-        $payout->affiliate_id = 1;
+        $payout->affiliate_id = $affiliateModel->id;
         $payout->amount = 500000;
         $payout->processed_at = now();
 
@@ -146,6 +180,13 @@ if (config('app.debug')) {
                 'totalEarnings' => 2500000,
             ]),
             'payout-completed' => view('emails.affiliate.payout-completed', ['payout' => $payout]),
+            
+            // Admin Emails (using real data)
+            'admin-payment-success' => view('emails.admin.payment-success', ['order' => $orderModel]),
+            'admin-payment-failed' => view('emails.admin.payment-failed', ['order' => $orderModel]),
+            'admin-new-affiliate' => view('emails.admin.new-affiliate', ['affiliate' => $affiliateModel]),
+            'admin-payout-request' => view('emails.admin.payout-request', ['payout' => $payoutModel]),
+            
             default => abort(404, 'Email type not found'),
         };
     })->name('dev.email-preview');

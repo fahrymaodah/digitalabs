@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -78,6 +79,23 @@ class Course extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function tutors(): BelongsToMany
+    {
+        return $this->belongsToMany(Tutor::class, 'course_tutor')
+            ->withPivot(['is_primary', 'order'])
+            ->withTimestamps()
+            ->orderByPivot('order');
+    }
+
+    /**
+     * Get primary tutor for the course
+     */
+    public function primaryTutor(): ?Tutor
+    {
+        return $this->tutors()->wherePivot('is_primary', true)->first()
+            ?? $this->tutors()->first();
+    }
+
     // ==================== SCOPES ====================
 
     public function scopePublished($query)
@@ -91,6 +109,24 @@ class Course extends Model
     }
 
     // ==================== ACCESSORS ====================
+
+    /**
+     * Get thumbnail URL with storage path
+     */
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (!$this->thumbnail) {
+            return null;
+        }
+
+        // If already a full URL (external image)
+        if (filter_var($this->thumbnail, FILTER_VALIDATE_URL)) {
+            return $this->thumbnail;
+        }
+
+        // If local storage path
+        return asset('storage/' . $this->thumbnail);
+    }
 
     /**
      * Get effective price (sale_price if available, otherwise price)

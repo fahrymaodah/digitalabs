@@ -27,6 +27,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
         'password',
         'avatar',
         'phone',
+        'province_id',
+        'city_id',
+        'district_id',
         'is_admin',
         'google_id',
         'provider',
@@ -68,11 +71,52 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     // ==================== RELATIONSHIPS ====================
 
     /**
+     * User's province
+     */
+    public function province(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    /**
+     * User's city
+     */
+    public function city(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(City::class);
+    }
+
+    /**
+     * User's district
+     */
+    public function district(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    /**
      * User's purchased courses (through user_courses)
      */
     public function userCourses(): HasMany
     {
         return $this->hasMany(UserCourse::class);
+    }
+
+    // ==================== ACCESSORS ====================
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar) {
+            // If already a full URL (external image)
+            if (filter_var($this->avatar, FILTER_VALIDATE_URL)) {
+                return $this->avatar;
+            }
+            // If local storage path
+            return asset('storage/' . $this->avatar);
+        }
+
+        // Fallback to UI Avatars
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=f97316&color=fff&size=200';
     }
 
     /**

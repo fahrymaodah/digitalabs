@@ -50,7 +50,7 @@ class LatestOrders extends BaseWidget
                     ->label('Date')
                     ->since(),
             ])
-            ->recordUrl(fn ($record) => OrderResource::getUrl('view', ['record' => $record]))
+            ->recordUrl(fn (Order $record): string => OrderResource::getUrl('view', ['record' => $record->id]))
             ->paginated(false);
     }
 }

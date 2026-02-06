@@ -2,11 +2,15 @@
 
 namespace App\Filament\User\Pages;
 
+use App\Models\Province;
+use App\Models\City;
+use App\Models\District;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Attributes\Computed;
 
 class Profile extends Page
 {
@@ -20,6 +24,9 @@ class Profile extends Page
     public string $name = '';
     public string $email = '';
     public ?string $phone = '';
+    public ?string $province_id = null;
+    public ?string $city_id = null;
+    public ?string $district_id = null;
 
     // Password fields
     public string $current_password = '';
@@ -32,6 +39,9 @@ class Profile extends Page
         $this->name = $user->name ?? '';
         $this->email = $user->email ?? '';
         $this->phone = $user->phone ?? '';
+        $this->province_id = $user->province_id;
+        $this->city_id = $user->city_id;
+        $this->district_id = $user->district_id;
     }
 
     public function updateProfile(): void
@@ -40,6 +50,9 @@ class Profile extends Page
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . Auth::id(),
             'phone' => 'required|string|max:20',
+            'province_id' => 'required|exists:provinces,id',
+            'city_id' => 'required|exists:cities,id',
+            'district_id' => 'nullable|exists:districts,id',
         ]);
 
         $user = Auth::user();
@@ -79,6 +92,49 @@ class Profile extends Page
             ->body('Your password has been changed successfully.')
             ->success()
             ->send();
+    }
+
+    // Livewire lifecycle hooks for cascade select
+    public function updatedProvinceId(): void
+    {
+        $this->city_id = null;
+        $this->district_id = null;
+    }
+
+    public function updatedCityId(): void
+    {
+        $this->district_id = null;
+    }
+
+    // Computed properties with caching
+    #[Computed]
+    public function provinces()
+    {
+        return Province::orderBy('name')->get();
+    }
+
+    #[Computed]
+    public function cities()
+    {
+        if (!$this->province_id) {
+            return collect([]);
+        }
+
+        return City::where('province_id', $this->province_id)
+            ->orderBy('name')
+            ->get();
+    }
+
+    #[Computed]
+    public function districts()
+    {
+        if (!$this->city_id) {
+            return collect([]);
+        }
+
+        return District::where('city_id', $this->city_id)
+            ->orderBy('name')
+            ->get();
     }
 
     protected function getViewData(): array

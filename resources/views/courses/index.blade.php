@@ -140,7 +140,7 @@
                     <div class="relative">
                         {{-- Thumbnail with Overlay --}}
                         <div class="relative overflow-hidden">
-                            <img src="{{ $course->thumbnail ?? 'https://placehold.co/600x400/f97316/white?text=' . urlencode($course->title) }}" 
+                            <img src="{{ $course->thumbnail_url ?? 'https://placehold.co/600x400/f97316/white?text=' . urlencode($course->title) }}" 
                                  alt="{{ $course->title }}"
                                  class="w-full h-52 object-cover transform group-hover:scale-110 transition-transform duration-700">
                             
@@ -274,7 +274,7 @@
                 <p class="text-gray-600 max-w-2xl mx-auto">Kami menyediakan pengalaman belajar terbaik untuk Anda</p>
             </div>
             
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
                 <div class="p-6 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border border-orange-100 text-center group hover:shadow-xl transition-all duration-300">
                     <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -305,15 +305,15 @@
                     <p class="text-gray-600 text-sm">Tanya jawab langsung dengan mentor via grup eksklusif</p>
                 </div>
                 
-                <div class="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100 text-center group hover:shadow-xl transition-all duration-300">
+                {{-- <div class="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-100 text-center group hover:shadow-xl transition-all duration-300">
                     <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 group-hover:scale-110 transition-transform duration-300">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                         </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-2">Sertifikat</h3>
-                    <p class="text-gray-600 text-sm">Dapatkan sertifikat setelah menyelesaikan kelas</p>
-                </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Test Title</h3>
+                    <p class="text-gray-600 text-sm">Test Description</p>
+                </div> --}}
             </div>
         </div>
     </section>

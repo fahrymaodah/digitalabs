@@ -10,13 +10,8 @@
     <meta property="og:title" content="{{ $post->title }}">
     <meta property="og:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 160) }}">
     <meta property="og:url" content="{{ request()->url() }}">
-    @if($post->featured_image)
-        @php
-            $ogImageUrl = str_starts_with($post->featured_image, 'http') 
-                ? $post->featured_image 
-                : Storage::url($post->featured_image);
-        @endphp
-        <meta property="og:image" content="{{ $ogImageUrl }}">
+    @if($post->featured_image_url)
+        <meta property="og:image" content="{{ $post->featured_image_url }}">
     @endif
     <meta property="article:published_time" content="{{ $post->published_at?->toIso8601String() }}">
     @if($post->category)
@@ -27,13 +22,8 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $post->title }}">
     <meta name="twitter:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 160) }}">
-    @if($post->featured_image)
-        @php
-            $twitterImageUrl = str_starts_with($post->featured_image, 'http') 
-                ? $post->featured_image 
-                : Storage::url($post->featured_image);
-        @endphp
-        <meta name="twitter:image" content="{{ $twitterImageUrl }}">
+    @if($post->featured_image_url)
+        <meta name="twitter:image" content="{{ $post->featured_image_url }}">
     @endif
     @endpush
 
@@ -94,14 +84,9 @@
     {{-- Hero Section with Featured Image --}}
     <section class="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 overflow-hidden">
         <!-- Background Image (if exists) -->
-        @if($post->featured_image)
-        @php
-            $featuredImageUrl = str_starts_with($post->featured_image, 'http') 
-                ? $post->featured_image 
-                : Storage::url($post->featured_image);
-        @endphp
+        @if($post->featured_image_url)
         <div class="absolute inset-0">
-            <img src="{{ $featuredImageUrl }}" 
+            <img src="{{ $post->featured_image_url }}" 
                  alt="{{ $post->title }}"
                  class="w-full h-full object-cover opacity-20">
             <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/60"></div>
@@ -238,14 +223,9 @@
                 {{-- Article Content (3 columns) --}}
                 <article class="lg:col-span-3 blog-content-wrapper">
                     {{-- Featured Image --}}
-                    @if($post->featured_image)
-                    @php
-                        $displayImageUrl = str_starts_with($post->featured_image, 'http') 
-                            ? $post->featured_image 
-                            : Storage::url($post->featured_image);
-                    @endphp
+                    @if($post->featured_image_url)
                     <figure class="mb-10 rounded-2xl overflow-hidden shadow-xl">
-                        <img src="{{ $displayImageUrl }}" 
+                        <img src="{{ $post->featured_image_url }}" 
                              alt="{{ $post->title }}"
                              class="w-full h-auto object-cover">
                     </figure>

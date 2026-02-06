@@ -41,6 +41,7 @@ Thumbs.db
 /.config
 /.local
 /docs
+/wordpress
 
 # OS
 .AppleDouble

@@ -216,7 +216,7 @@
                             {{-- Course Card --}}
                             <div class="flex gap-4 mb-6">
                                 @if($course->thumbnail)
-                                    <img src="{{ $course->thumbnail }}" alt="{{ $course->title }}" class="w-24 h-16 object-cover rounded-xl shadow-sm">
+                                    <img src="{{ $course->thumbnail_url }}" alt="{{ $course->title }}" class="w-24 h-16 object-cover rounded-xl shadow-sm">
                                 @else
                                     <div class="w-24 h-16 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center">
                                         <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
