@@ -33,7 +33,7 @@ class NewCommissionMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '💰 Komisi Baru: Rp ' . number_format($this->commission->amount, 0, ',', '.'),
+            subject: '💰 Komisi Baru: Rp ' . number_format($this->commission->commission_amount, 0, ',', '.'),
         );
     }
 
