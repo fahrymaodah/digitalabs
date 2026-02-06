@@ -85,20 +85,11 @@ if (config('app.debug')) {
 
     // Email Preview Routes
     Route::get('/dev/email/{type}', function ($type) {
-        // Get real order #229 or fallback to first order
-        $orderModel = \App\Models\Order::find(229) ?? \App\Models\Order::first();
-        
-        if (!$orderModel) {
-            return 'No orders found in database. Please create an order first.';
-        }
-        
-        $orderModel->load(['user', 'items.product', 'coupon']);
-
         // Get real affiliate or create demo one
         $affiliateModel = \App\Models\Affiliate::first() ?? \App\Models\Affiliate::updateOrCreate(
             ['id' => 1],
             [
-                'user_id' => $orderModel->user_id,
+                'user_id' => 1,
                 'referral_code' => 'DEMO2024',
                 'commission_rate' => 20,
                 'status' => 'pending',
@@ -108,6 +99,21 @@ if (config('app.debug')) {
             ]
         );
         $affiliateModel->load('user');
+        
+        // Get order with affiliate or fallback to first order
+        $orderModel = \App\Models\Order::whereNotNull('affiliate_id')->first() ?? \App\Models\Order::first();
+        
+        if (!$orderModel) {
+            return 'No orders found in database. Please create an order first.';
+        }
+        
+        // Temporarily assign affiliate for testing
+        if (!$orderModel->affiliate_id) {
+            $orderModel->affiliate_id = $affiliateModel->id;
+            $orderModel->save();
+        }
+        
+        $orderModel->load(['user', 'items.course', 'coupon', 'affiliate.user']);
 
         // Create demo payout
         $payoutModel = \App\Models\AffiliatePayout::create([
