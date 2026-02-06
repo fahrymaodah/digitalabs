@@ -7,8 +7,8 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 
 class ViewUser extends ViewRecord
@@ -18,10 +18,11 @@ class ViewUser extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('User Information')
                     ->schema([
-                        Section::make('User Information')
+                        Grid::make(2)
                             ->schema([
                                 TextEntry::make('name'),
                                 TextEntry::make('email')
@@ -30,25 +31,29 @@ class ViewUser extends ViewRecord
                                     ->placeholder('No phone'),
                                 TextEntry::make('created_at')
                                     ->dateTime(),
-                            ])
-                            ->columnSpan(2),
-
-                        Section::make('Account')
-                            ->schema([
-                                ImageEntry::make('avatar')
-                                    ->disk('public')
-                                    ->circular()
-                                    ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name)),
-                                IconEntry::make('is_admin')
-                                    ->label('Administrator')
-                                    ->boolean(),
                                 TextEntry::make('email_verified_at')
                                     ->label('Email Verified')
                                     ->dateTime()
                                     ->placeholder('Not verified'),
+                                IconEntry::make('is_admin')
+                                    ->label('Administrator')
+                                    ->boolean(),
                             ])
-                            ->columnSpan(1),
-                    ]),
+                    ])
+                    ->columnSpan(4),
+
+                Section::make('Avatar')
+                    ->schema([
+                        ImageEntry::make('avatar')
+                            ->hiddenLabel()
+                            ->width(150)
+                            ->height(150)
+                            ->disk('public')
+                            ->circular()
+                            ->defaultImageUrl(fn ($record) => 'https://ui-avatars.com/api/?name=' . urlencode($record->name))
+                            ->alignment('center'),
+                    ])
+                    ->columnSpan(2),
             ]);
     }
 }

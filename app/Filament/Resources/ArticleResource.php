@@ -13,7 +13,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -43,90 +42,84 @@ class ArticleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Article Content')
                     ->schema([
-                        Grid::make(1)
-                            ->schema([
-                                Section::make('Article Content')
-                                    ->schema([
-                                        TextInput::make('title')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->live(onBlur: true)
-                                            ->afterStateUpdated(function (string $operation, $state, callable $set) {
-                                                if ($operation !== 'create') {
-                                                    return;
-                                                }
-                                                $set('slug', Str::slug($state));
-                                            }),
+                        TextInput::make('title')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function (string $operation, $state, callable $set) {
+                                if ($operation !== 'create') {
+                                    return;
+                                }
+                                $set('slug', Str::slug($state));
+                            }),
 
-                                        TextInput::make('slug')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->unique(ignoreRecord: true),
+                        TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
 
-                                        Textarea::make('excerpt')
-                                            ->rows(3)
-                                            ->helperText('Short summary for article listings'),
+                        Textarea::make('excerpt')
+                            ->rows(3)
+                            ->helperText('Short summary for article listings'),
 
-                                        RichEditor::make('content')
-                                            ->required()
-                                            ->fileAttachmentsDisk('public')
-                                            ->fileAttachmentsDirectory('articles')
-                                            ->columnSpanFull(),
-                                    ]),
+                        RichEditor::make('content')
+                            ->required()
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsDirectory('articles')
+                            ->extraInputAttributes(['style' => 'min-height: 300px'])
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpan(12),
 
-                                Section::make('SEO')
-                                    ->schema([
-                                        TextInput::make('meta_title')
-                                            ->maxLength(70)
-                                            ->helperText('Max 70 characters'),
+                Section::make('SEO')
+                    ->schema([
+                        TextInput::make('meta_title')
+                            ->maxLength(70)
+                            ->helperText('Max 70 characters'),
 
-                                        Textarea::make('meta_description')
-                                            ->rows(2)
-                                            ->maxLength(160)
-                                            ->helperText('Max 160 characters'),
-                                    ])
-                                    ->collapsed(),
-                            ])
-                            ->columnSpan(2),
+                        Textarea::make('meta_description')
+                            ->rows(2)
+                            ->maxLength(160)
+                            ->helperText('Max 160 characters'),
+                    ])
+                    ->columnSpan(4),
 
-                        Grid::make(1)
-                            ->schema([
-                                Section::make('Settings')
-                                    ->schema([
-                                        Select::make('category_id')
-                                            ->relationship('category', 'name')
-                                            ->searchable()
-                                            ->preload()
-                                            ->createOptionForm([
-                                                TextInput::make('name')
-                                                    ->required(),
-                                                TextInput::make('slug')
-                                                    ->required(),
-                                            ]),
+                Section::make('Featured Image')
+                    ->schema([
+                        FileUpload::make('featured_image')
+                            ->image()
+                            ->disk('public')
+                            ->directory('articles')
+                            ->imageEditor()
+                            ->imageCropAspectRatio('16:9'),
+                    ])
+                    ->columnSpan(4),
 
-                                        Toggle::make('is_published')
-                                            ->label('Published'),
+                Section::make('Settings')
+                    ->schema([
+                        Select::make('category_id')
+                            ->relationship('category', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('name')
+                                    ->required(),
+                                TextInput::make('slug')
+                                    ->required(),
+                            ]),
 
-                                        DateTimePicker::make('published_at')
-                                            ->label('Publish Date')
-                                            ->default(now()),
-                                    ]),
+                        Toggle::make('is_published')
+                            ->label('Published'),
 
-                                Section::make('Featured Image')
-                                    ->schema([
-                                        FileUpload::make('featured_image')
-                                            ->image()
-                                            ->disk('public')
-                                            ->directory('articles')
-                                            ->imageEditor()
-                                            ->imageCropAspectRatio('16:9'),
-                                    ]),
-                            ])
-                            ->columnSpan(1),
-                    ]),
+                        DateTimePicker::make('published_at')
+                            ->label('Publish Date')
+                            ->default(now()),
+                    ])
+                    ->columnSpan(4),
             ]);
     }
 

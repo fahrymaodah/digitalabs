@@ -73,45 +73,44 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('order_number')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable(),
-
-                TextColumn::make('user.name')
-                    ->label('Customer')
-                    ->searchable()
-                    ->sortable(),
+                    ->label('Order & Customer')
+                    ->formatStateUsing(fn($state, $record) => 
+                        '<strong>' . $state . '</strong><br>' . $record->user->name
+                    )
+                    ->html()
+                    ->searchable('order_number')
+                    ->sortable('order_number')
+                    ->copyable(fn($state) => $state),
 
                 TextColumn::make('subtotal')
                     ->label('Subtotal')
-                    ->money('IDR')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                TextColumn::make('coupon.code')
-                    ->label('Coupon')
-                    ->badge()
-                    ->color('success')
-                    ->placeholder('-')
-                    ->toggleable(),
+                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
+                    ->sortable(),
+                    // ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('discount')
                     ->label('Discount')
-                    ->money('IDR')
+                    ->formatStateUsing(fn($state, $record) => 
+                        ($state == 0 && !$record->coupon) 
+                            ? '-' 
+                            : ('IDR ' . number_format($state, 0, ',', '.') . '<br>' . 
+                               ($record->coupon ? '<span class="inline-flex items-center rounded-md bg-green-400/10 px-2 py-1 text-xs font-medium text-green-400 inset-ring inset-ring-green-500/20">' . strtoupper($record->coupon->code) . '</span>' : '-'))
+                    )
+                    ->html()
+                    ->alignment('center')
                     ->color('danger')
-                    ->placeholder('-')
                     ->toggleable(),
 
                 TextColumn::make('payment_fee')
                     ->label('Fee')
-                    ->money('IDR')
+                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
                     ->color('warning')
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('total')
                     ->label('Total')
-                    ->money('IDR')
+                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
                     ->sortable()
                     ->weight('bold'),
 
@@ -126,6 +125,7 @@ class OrderResource extends Resource
                     }),
 
                 TextColumn::make('payment_method')
+                    ->label('Payment')
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'duitku' => 'info',
@@ -140,13 +140,17 @@ class OrderResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('paid_at')
-                    ->dateTime()
+                    ->label('Paid At')
+                    ->formatStateUsing(fn($state) => $state ? $state->format('d M Y') . '<br>' . $state->format('H:i') : '-')
+                    ->html()
                     ->sortable()
                     ->placeholder('Not paid')
                     ->toggleable(),
 
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Created')
+                    ->formatStateUsing(fn($state) => $state ? $state->format('d M Y') . '<br>' . $state->format('H:i') : '-')
+                    ->html()
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

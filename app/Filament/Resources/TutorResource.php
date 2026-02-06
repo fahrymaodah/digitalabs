@@ -10,7 +10,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -40,107 +39,104 @@ class TutorResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Tutor Information')
                     ->schema([
-                        // Main Content - 2 columns
-                        Section::make('Tutor Information')
-                            ->schema([
-                                TextInput::make('name')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state))),
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state))),
 
-                                TextInput::make('slug')
-                                    ->required()
-                                    ->maxLength(255)
-                                    ->unique(ignoreRecord: true),
+                        TextInput::make('slug')
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
 
-                                TextInput::make('title')
-                                    ->maxLength(255)
-                                    ->placeholder('e.g., Senior Instructor, Lead Developer')
-                                    ->helperText('Professional title or role'),
+                        TextInput::make('title')
+                            ->maxLength(255)
+                            ->placeholder('e.g., Senior Instructor, Lead Developer')
+                            ->helperText('Professional title or role'),
 
-                                TextInput::make('email')
-                                    ->email()
-                                    ->maxLength(255),
+                        TextInput::make('email')
+                            ->email()
+                            ->maxLength(255),
 
-                                TextInput::make('phone')
-                                    ->tel()
-                                    ->maxLength(20),
+                        TextInput::make('phone')
+                            ->tel()
+                            ->maxLength(20),
 
-                                TextInput::make('experience_years')
-                                    ->label('Years of Experience')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(50)
-                                    ->default(0)
-                                    ->suffix('years'),
+                        TextInput::make('experience_years')
+                            ->label('Years of Experience')
+                            ->numeric()
+                            ->minValue(0)
+                            ->maxValue(50)
+                            ->default(0)
+                            ->suffix('years'),
 
-                                Textarea::make('bio')
-                                    ->rows(4)
-                                    ->maxLength(1000)
-                                    ->columnSpanFull()
-                                    ->helperText('Short biography about the tutor'),
-                            ])
-                            ->columnSpan(2),
+                        Textarea::make('bio')
+                            ->rows(3)
+                            ->maxLength(1000)
+                            ->columnSpanFull()
+                            ->helperText('Short biography about the tutor'),
+                    ])
+                    ->columns(2)
+                    ->columnSpan(6),
 
-                        // Sidebar - 1 column
-                        Grid::make(1)
-                            ->schema([
-                                Section::make('Photo')
-                                    ->schema([
-                                        FileUpload::make('avatar')
-                                            ->image()
-                                            ->disk('public')
-                                            ->directory('tutors')
-                                            ->imageEditor()
-                                            ->avatar()
-                                            ->circleCropper()
-                                            ->maxSize(2048),
-                                    ]),
+                Section::make('Social Links')
+                    ->schema([
+                        TextInput::make('website')
+                            ->url()
+                            ->placeholder('https://...')
+                            ->prefixIcon('heroicon-o-globe-alt'),
 
-                                Section::make('Settings')
-                                    ->schema([
-                                        Toggle::make('is_active')
-                                            ->label('Active')
-                                            ->default(true)
-                                            ->helperText('Inactive tutors won\'t appear on the site'),
+                        TextInput::make('linkedin')
+                            ->url()
+                            ->placeholder('https://linkedin.com/in/...')
+                            ->prefixIcon('heroicon-o-link'),
 
-                                        TextInput::make('order')
-                                            ->numeric()
-                                            ->default(0)
-                                            ->minValue(0)
-                                            ->helperText('Lower number = higher priority'),
-                                    ]),
+                        TextInput::make('youtube')
+                            ->url()
+                            ->placeholder('https://youtube.com/@...')
+                            ->prefixIcon('heroicon-o-play'),
 
-                                Section::make('Social Links')
-                                    ->schema([
-                                        TextInput::make('website')
-                                            ->url()
-                                            ->placeholder('https://...')
-                                            ->prefixIcon('heroicon-o-globe-alt'),
+                        TextInput::make('instagram')
+                            ->url()
+                            ->placeholder('https://instagram.com/...')
+                            ->prefixIcon('heroicon-o-camera'),
+                    ])
+                    ->columnSpan(4),
 
-                                        TextInput::make('linkedin')
-                                            ->url()
-                                            ->placeholder('https://linkedin.com/in/...')
-                                            ->prefixIcon('heroicon-o-link'),
+                Section::make('Settings')
+                    ->schema([
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true)
+                            ->helperText('Inactive tutors won\'t appear on the site'),
 
-                                        TextInput::make('youtube')
-                                            ->url()
-                                            ->placeholder('https://youtube.com/@...')
-                                            ->prefixIcon('heroicon-o-play'),
+                        TextInput::make('order')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->helperText('Lower number = higher priority'),
+                    ])
+                    ->columnSpan(4),
 
-                                        TextInput::make('instagram')
-                                            ->url()
-                                            ->placeholder('https://instagram.com/...')
-                                            ->prefixIcon('heroicon-o-camera'),
-                                    ])
-                                    ->collapsible(),
-                            ])
-                            ->columnSpan(1),
-                    ]),
+                Section::make('Photo')
+                    ->schema([
+                        FileUpload::make('avatar')
+                            ->hiddenLabel()
+                            ->image()
+                            ->disk('public')
+                            ->directory('tutors')
+                            ->imageEditor()
+                            ->avatar()
+                            ->circleCropper()
+                            ->maxSize(2048)
+                            ->alignment('center'),
+                    ])
+                    ->columnSpan(2),
             ]);
     }
 

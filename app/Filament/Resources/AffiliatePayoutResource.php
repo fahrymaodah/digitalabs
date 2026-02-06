@@ -36,6 +36,7 @@ class AffiliatePayoutResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
                 Section::make('Payout Information')
                     ->schema([
@@ -44,13 +45,15 @@ class AffiliatePayoutResource extends Resource
                             ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->user->name} ({$record->referral_code})")
                             ->searchable()
                             ->preload()
-                            ->required(),
+                            ->required()
+                            ->columnSpan(6),
 
                         TextInput::make('amount')
                             ->required()
                             ->numeric()
                             ->prefix('Rp')
-                            ->minValue(0),
+                            ->minValue(0)
+                            ->columnSpan(3),
 
                         Select::make('status')
                             ->options([
@@ -60,13 +63,15 @@ class AffiliatePayoutResource extends Resource
                                 'failed' => 'Failed',
                             ])
                             ->default('pending')
-                            ->required(),
+                            ->required()
+                            ->columnSpan(3),
 
                         Textarea::make('notes')
-                            ->rows(3)
+                            ->rows(5)
                             ->columnSpanFull(),
                     ])
-                    ->columns(2),
+                    ->columns(12)
+                    ->columnSpan(8),
 
                 Section::make('Bank Details')
                     ->schema([
@@ -79,7 +84,8 @@ class AffiliatePayoutResource extends Resource
                         TextInput::make('bank_account_name')
                             ->maxLength(100),
                     ])
-                    ->columns(3),
+                    ->columns(1)
+                    ->columnSpan(4),
             ]);
     }
 

@@ -65,23 +65,24 @@ class UserResource extends Resource
                                     ->dehydrated(fn ($state) => filled($state))
                                     ->required(fn ($record) => $record === null)
                                     ->helperText(fn ($record) => $record ? 'Leave empty to keep current password' : null),
+                                Toggle::make('is_admin')
+                                    ->label('Administrator')
+                                    ->helperText('Grant admin access'),
                             ])
                             ->columnSpan(2),
 
-                        Section::make('Settings')
+                        Section::make('Avatar')
                             ->schema([
                                 FileUpload::make('avatar')
+                                    ->hiddenLabel()
                                     ->image()
                                     ->disk('public')
                                     ->directory('avatars')
                                     ->imageEditor()
                                     ->avatar()
                                     ->circleCropper()
+                                    ->alignment('center')
                                     ->maxSize(1024),
-
-                                Toggle::make('is_admin')
-                                    ->label('Administrator')
-                                    ->helperText('Grant admin access'),
                             ])
                             ->columnSpan(1),
                     ]),

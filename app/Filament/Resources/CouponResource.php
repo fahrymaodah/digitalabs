@@ -40,110 +40,104 @@ class CouponResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Coupon Details')
                     ->schema([
-                        // Main Content - 2 columns
-                        Section::make('Coupon Details')
+                        TextInput::make('code')
+                            ->required()
+                            ->maxLength(50)
+                            ->unique(ignoreRecord: true)
+                            ->placeholder('DIGITALABS')
+                            ->helperText('Uppercase, no spaces')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn ($state, callable $set) => $set('code', strtoupper(Str::slug($state, '')))),
+
+                        Textarea::make('description')
+                            ->rows(2)
+                            ->maxLength(255)
+                            ->placeholder('Discount for new users'),
+
+                        Grid::make(2)
                             ->schema([
-                                TextInput::make('code')
+                                Select::make('type')
+                                    ->options([
+                                        'percentage' => 'Percentage (%)',
+                                        'fixed' => 'Fixed Amount (Rp)',
+                                    ])
+                                    ->default('percentage')
                                     ->required()
-                                    ->maxLength(50)
-                                    ->unique(ignoreRecord: true)
-                                    ->placeholder('DIGITALABS')
-                                    ->helperText('Uppercase, no spaces')
-                                    ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($state, callable $set) => $set('code', strtoupper(Str::slug($state, '')))),
+                                    ->live(),
 
-                                Textarea::make('description')
-                                    ->rows(2)
-                                    ->maxLength(255)
-                                    ->placeholder('Discount for new users'),
+                                TextInput::make('value')
+                                    ->required()
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->suffix(fn ($get) => $get('type') === 'percentage' ? '%' : 'Rp')
+                                    ->helperText(fn ($get) => $get('type') === 'percentage' ? 'Enter 0-100' : 'Fixed discount amount'),
+                            ]),
 
-                                Grid::make(2)
-                                    ->schema([
-                                        Select::make('type')
-                                            ->options([
-                                                'percentage' => 'Percentage (%)',
-                                                'fixed' => 'Fixed Amount (Rp)',
-                                            ])
-                                            ->default('percentage')
-                                            ->required()
-                                            ->live(),
-
-                                        TextInput::make('value')
-                                            ->required()
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->suffix(fn ($get) => $get('type') === 'percentage' ? '%' : 'Rp')
-                                            ->helperText(fn ($get) => $get('type') === 'percentage' ? 'Enter 0-100' : 'Fixed discount amount'),
-                                    ]),
-
-                                Grid::make(2)
-                                    ->schema([
-                                        TextInput::make('min_order_amount')
-                                            ->numeric()
-                                            ->prefix('Rp')
-                                            ->minValue(0)
-                                            ->placeholder('0')
-                                            ->helperText('Minimum order to apply coupon'),
-
-                                        TextInput::make('max_discount')
-                                            ->numeric()
-                                            ->prefix('Rp')
-                                            ->minValue(0)
-                                            ->placeholder('No limit')
-                                            ->helperText('Max discount for percentage')
-                                            ->visible(fn ($get) => $get('type') === 'percentage'),
-                                    ]),
-                            ])
-                            ->columnSpan(2),
-
-                        // Sidebar - 1 column
-                        Grid::make(1)
+                        Grid::make(2)
                             ->schema([
-                                Section::make('Usage Limits')
-                                    ->schema([
-                                        TextInput::make('usage_limit')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->placeholder('Unlimited')
-                                            ->helperText('Total times coupon can be used'),
+                                TextInput::make('min_order_amount')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->minValue(0)
+                                    ->placeholder('0')
+                                    ->helperText('Minimum order to apply coupon'),
 
-                                        TextInput::make('usage_limit_per_user')
-                                            ->numeric()
-                                            ->minValue(1)
-                                            ->default(1)
-                                            ->required()
-                                            ->helperText('Per user limit'),
+                                TextInput::make('max_discount')
+                                    ->numeric()
+                                    ->prefix('Rp')
+                                    ->minValue(0)
+                                    ->placeholder('No limit')
+                                    ->helperText('Max discount for percentage')
+                                    ->visible(fn ($get) => $get('type') === 'percentage'),
+                            ]),
+                    ])
+                    ->columnSpan(6),
 
-                                        TextInput::make('used_count')
-                                            ->numeric()
-                                            ->default(0)
-                                            ->disabled()
-                                            ->dehydrated(false)
-                                            ->helperText('Times used so far'),
-                                    ]),
+                Section::make('Usage Limits')
+                    ->schema([
+                        TextInput::make('usage_limit')
+                            ->numeric()
+                            ->minValue(1)
+                            ->placeholder('Unlimited')
+                            ->helperText('Total times coupon can be used'),
 
-                                Section::make('Validity Period')
-                                    ->schema([
-                                        DateTimePicker::make('starts_at')
-                                            ->label('Start Date')
-                                            ->placeholder('Immediately'),
+                        TextInput::make('usage_limit_per_user')
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(1)
+                            ->required()
+                            ->helperText('Per user limit'),
 
-                                        DateTimePicker::make('expires_at')
-                                            ->label('Expiry Date')
-                                            ->placeholder('Never expires')
-                                            ->after('starts_at'),
+                        TextInput::make('used_count')
+                            ->numeric()
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('Times used so far'),
+                    ])
+                    ->columnSpan(3),
 
-                                        Toggle::make('is_active')
-                                            ->label('Active')
-                                            ->default(true)
-                                            ->helperText('Enable or disable coupon'),
-                                    ]),
-                            ])
-                            ->columnSpan(1),
-                    ]),
+                Section::make('Validity Period')
+                    ->schema([
+                        DateTimePicker::make('starts_at')
+                            ->label('Start Date')
+                            ->placeholder('Immediately'),
+
+                        DateTimePicker::make('expires_at')
+                            ->label('Expiry Date')
+                            ->placeholder('Never expires')
+                            ->after('starts_at'),
+
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true)
+                            ->helperText('Enable or disable coupon'),
+                    ])
+                    ->columnSpan(3),
             ]);
     }
 

@@ -25,10 +25,11 @@ class ViewOrder extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Order Information')
                     ->schema([
-                        Section::make('Order Information')
+                        Grid::make(2)
                             ->schema([
                                 TextEntry::make('order_number')
                                     ->copyable(),
@@ -52,108 +53,106 @@ class ViewOrder extends ViewRecord
                                 TextEntry::make('paid_at')
                                     ->dateTime()
                                     ->placeholder('Not paid'),
-                            ])
-                            ->columns(2),
+                            ]),
+                    ])
+                    ->columnSpan(6),
 
-                        Section::make('Payment Details')
-                            ->schema([
-                                TextEntry::make('payment_method')
-                                    ->label('Payment Method')
-                                    ->badge()
-                                    ->color(fn (?string $state): string => match ($state) {
-                                        'duitku' => 'info',
-                                        'bank_transfer' => 'warning',
-                                        default => 'gray',
-                                    })
-                                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                                        'duitku' => 'Duitku (Online)',
-                                        'bank_transfer' => 'Bank Transfer (Manual)',
-                                        default => $state ?? 'Not selected',
-                                    }),
-                                TextEntry::make('duitku_reference')
-                                    ->label('Payment Reference')
-                                    ->placeholder('N/A')
-                                    ->copyable(),
-                            ])
-                            ->columns(2),
+                Section::make('Payment Details')
+                    ->schema([
+                        TextEntry::make('payment_method')
+                            ->label('Payment Method')
+                            ->badge()
+                            ->color(fn (?string $state): string => match ($state) {
+                                'duitku' => 'info',
+                                'bank_transfer' => 'warning',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                'duitku' => 'Duitku (Online)',
+                                'bank_transfer' => 'Bank Transfer (Manual)',
+                                default => $state ?? 'Not selected',
+                            }),
+                        TextEntry::make('duitku_reference')
+                            ->label('Payment Reference')
+                            ->placeholder('N/A')
+                            ->copyable(),
+                    ])
+                    ->columnSpan(3),
 
-                        Section::make('Affiliate')
-                            ->schema([
-                                TextEntry::make('affiliate.user.name')
-                                    ->label('Affiliate')
-                                    ->placeholder('No affiliate'),
-                                TextEntry::make('affiliate.referral_code')
-                                    ->label('Referral Code')
-                                    ->placeholder('N/A'),
-                                TextEntry::make('commission.0.commission_amount')
-                                    ->label('Commission Amount')
-                                    ->money('IDR')
-                                    ->placeholder('N/A'),
-                            ])
-                            ->columns(1),
-                    ]),
+                Section::make('Affiliate')
+                    ->schema([
+                        TextEntry::make('affiliate.user.name')
+                            ->label('Affiliate')
+                            ->placeholder('No affiliate'),
+                        TextEntry::make('affiliate.referral_code')
+                            ->label('Referral Code')
+                            ->placeholder('N/A'),
+                        TextEntry::make('commission.0.commission_amount')
+                            ->label('Commission Amount')
+                            ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state ?? 0, 0, ',', '.'))
+                            ->placeholder('N/A'),
+                    ])
+                    ->columnSpan(3),
 
                 Section::make('Price Breakdown')
                     ->schema([
-                        Grid::make(6)
+                        Grid::make(4)
                             ->schema([
                                 TextEntry::make('subtotal')
                                     ->label('Subtotal')
-                                    ->money('IDR')
+                                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
                                     ->helperText('Harga produk'),
-
-                                TextEntry::make('coupon.code')
-                                    ->label('Coupon')
-                                    ->badge()
-                                    ->color('success')
-                                    ->placeholder('No coupon')
-                                    ->suffix(fn ($record) => $record->coupon 
-                                        ? " ({$record->coupon->value}%)" 
-                                        : null),
 
                                 TextEntry::make('discount')
                                     ->label('Discount')
-                                    ->money('IDR')
-                                    ->color('danger')
-                                    ->prefix('- ')
-                                    ->placeholder('Rp 0'),
+                                    ->formatStateUsing(fn($state, $record) => 
+                                        ($state == 0 && !$record->coupon) 
+                                            ? '-' 
+                                            : '- ' . ('IDR ' . number_format($state, 0, ',', '.') . '<br>' . 
+                                            ($record->coupon ? '<span class="rounded-md bg-green-400/10 px-2 py-1 text-xs font-medium text-green-400 inset-ring inset-ring-green-500/20">' . strtoupper($record->coupon->code) . '</span>' : '-'))
+                                    )
+                                    ->html()
+                                    ->color('danger'),
 
                                 TextEntry::make('payment_fee')
                                     ->label('Payment Fee')
-                                    ->money('IDR')
+                                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
                                     ->color('warning')
                                     ->prefix('+ ')
                                     ->helperText('Unique code / gateway fee'),
 
                                 TextEntry::make('total')
                                     ->label('Total Paid (Customer)')
-                                    ->money('IDR')
+                                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
                                     ->weight('bold')
                                     ->color('info')
                                     ->helperText('Yang dibayar customer'),
 
+                                
+                            ]),
+                        
+                        Grid::make(3)
+                            ->schema([
+                                TextEntry::make('net_revenue')
+                                    ->label('Net Revenue (Business)')
+                                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state, 0, ',', '.'))
+                                    ->weight('bold')
+                                    ->size('lg')
+                                    ->color('success')
+                                    ->state(fn ($record) => $record->total - ($record->commission->first()?->commission_amount ?? 0))
+                                    ->helperText('Pendapatan bersih setelah komisi affiliate'),
+
                                 TextEntry::make('commission.0.commission_amount')
                                     ->label('Affiliate Commission')
-                                    ->money('IDR')
+                                    ->formatStateUsing(fn ($state) => 'IDR ' . number_format($state ?? 0, 0, ',', '.'))
+                                    ->weight('bold')
+                                    ->size('lg')
                                     ->color('warning')
                                     ->prefix('- ')
                                     ->placeholder('Rp 0')
                                     ->helperText('Komisi ke affiliate'),
                             ]),
                         
-                        Grid::make(1)
-                            ->schema([
-                                TextEntry::make('net_revenue')
-                                    ->label('Net Revenue (Business)')
-                                    ->money('IDR')
-                                    ->weight('bold')
-                                    ->size('lg')
-                                    ->color('success')
-                                    ->state(fn ($record) => $record->total - ($record->commission->first()?->commission_amount ?? 0))
-                                    ->helperText('Pendapatan bersih setelah komisi affiliate'),
-                            ]),
-                        
-                        // Formula verification
                         TextEntry::make('formula')
                             ->label('')
                             ->state(fn ($record) => sprintf(
@@ -167,7 +166,8 @@ class ViewOrder extends ViewRecord
                             ->color('gray')
                             ->extraAttributes(['class' => 'text-xs']),
                     ])
-                    ->description('Total Paid - Affiliate Commission = Net Revenue'),
+                    ->description('Total Paid - Affiliate Commission = Net Revenue')
+                    ->columnSpan(12),
             ]);
     }
 }

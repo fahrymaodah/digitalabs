@@ -37,6 +37,7 @@ class CourseReviewResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
                 Section::make('Review Details')
                     ->schema([
@@ -69,14 +70,15 @@ class CourseReviewResource extends Resource
                             ->columnSpanFull()
                             ->disabled(),
                     ])
-                    ->columns(2),
+                    ->columnSpan(6),
 
                 Section::make('Moderation')
                     ->schema([
                         Toggle::make('is_published')
                             ->label('Published')
                             ->helperText('Only published reviews are visible on the course page'),
-                    ]),
+                    ])
+                    ->columnSpan(2),
             ]);
     }
 

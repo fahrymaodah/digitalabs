@@ -18,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
@@ -50,136 +51,132 @@ class CourseResource extends Resource
             ->components([
                 Tabs::make('Course')
                     ->tabs([
-                        Tabs\Tab::make('Course Info')
+                        Tab::make('Course Info')
                             ->icon('heroicon-o-information-circle')
                             ->schema([
-                                Grid::make(3)
+                                Section::make('Course Information')
                                     ->schema([
-                                        // Main Content - 2 columns
-                                        Section::make('Course Information')
-                                            ->schema([
-                                                TextInput::make('title')
-                                                    ->required()
-                                                    ->maxLength(255)
-                                                    ->live(onBlur: true)
-                                                    ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state))),
+                                        TextInput::make('title')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn ($state, callable $set) => $set('slug', Str::slug($state))),
 
-                                                TextInput::make('slug')
-                                                    ->required()
-                                                    ->maxLength(255)
-                                                    ->unique(ignoreRecord: true),
+                                        TextInput::make('slug')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->unique(ignoreRecord: true),
 
-                                                Textarea::make('description')
-                                                    ->required()
-                                                    ->rows(3)
-                                                    ->maxLength(500)
-                                                    ->helperText('Short description for listing'),
+                                        Textarea::make('description')
+                                            ->required()
+                                            ->rows(3)
+                                            ->maxLength(500)
+                                            ->helperText('Short description for listing'),
 
-                                                RichEditor::make('content')
-                                                    ->required()
-                                                    ->toolbarButtons([
-                                                        'bold',
-                                                        'italic',
-                                                        'underline',
-                                                        'strike',
-                                                        'h2',
-                                                        'h3',
-                                                        'bulletList',
-                                                        'orderedList',
-                                                        'link',
-                                                    ])
-                                                    ->columnSpanFull(),
+                                        RichEditor::make('content')
+                                            ->required()
+                                            ->toolbarButtons([
+                                                'bold',
+                                                'italic',
+                                                'underline',
+                                                'strike',
+                                                'h2',
+                                                'h3',
+                                                'bulletList',
+                                                'orderedList',
+                                                'link',
                                             ])
-                                            ->columnSpan(2),
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->columnSpan(8),
 
-                                        // Sidebar - 1 column
-                                        Grid::make(1)
-                                            ->schema([
-                                                Section::make('Details')
-                                                    ->schema([
-                                                        Select::make('category_id')
-                                                            ->label('Category')
-                                                            ->options(CourseCategory::pluck('name', 'id'))
-                                                            ->required()
-                                                            ->searchable(),
+                                Section::make('Details')
+                                    ->schema([
+                                        Select::make('category_id')
+                                            ->label('Category')
+                                            ->options(CourseCategory::pluck('name', 'id'))
+                                            ->required()
+                                            ->searchable(),
 
-                                                        Select::make('status')
-                                                            ->options([
-                                                                'draft' => 'Draft',
-                                                                'published' => 'Published',
-                                                                'archived' => 'Archived',
-                                                            ])
-                                                            ->default('draft')
-                                                            ->required(),
-
-                                                        Select::make('access_type')
-                                                            ->options([
-                                                                'lifetime' => 'Lifetime Access',
-                                                                'limited' => 'Limited Time',
-                                                            ])
-                                                            ->default('lifetime')
-                                                            ->required()
-                                                            ->live(),
-
-                                                        TextInput::make('access_days')
-                                                            ->numeric()
-                                                            ->minValue(1)
-                                                            ->suffix('days')
-                                                            ->visible(fn ($get) => $get('access_type') === 'limited'),
-
-                                                        TextInput::make('order')
-                                                            ->numeric()
-                                                            ->default(0)
-                                                            ->minValue(0),
-                                                    ]),
-
-                                                Section::make('Pricing')
-                                                    ->schema([
-                                                        TextInput::make('price')
-                                                            ->required()
-                                                            ->numeric()
-                                                            ->prefix('Rp')
-                                                            ->minValue(0),
-
-                                                        TextInput::make('sale_price')
-                                                            ->numeric()
-                                                            ->prefix('Rp')
-                                                            ->minValue(0)
-                                                            ->helperText('Leave empty for no sale'),
-                                                    ]),
-
-                                                Section::make('Tutors')
-                                                    ->schema([
-                                                        Select::make('tutors')
-                                                            ->label('Tutors')
-                                                            ->multiple()
-                                                            ->relationship('tutors', 'name')
-                                                            ->options(Tutor::active()->ordered()->pluck('name', 'id'))
-                                                            ->searchable()
-                                                            ->preload()
-                                                            ->helperText('Select one or more tutors for this course. The first selected tutor will be marked as primary.'),
-                                                    ]),
-
-                                                Section::make('Media')
-                                                    ->schema([
-                                                        FileUpload::make('thumbnail')
-                                                            ->image()
-                                                            ->disk('public')
-                                                            ->directory('courses/thumbnails')
-                                                            ->imageEditor()
-                                                            ->maxSize(2048),
-
-                                                        TextInput::make('preview_url')
-                                                            ->label('Preview Video URL')
-                                                            ->url()
-                                                            ->placeholder('https://youtube.com/...'),
-                                                    ]),
+                                        Select::make('status')
+                                            ->options([
+                                                'draft' => 'Draft',
+                                                'published' => 'Published',
+                                                'archived' => 'Archived',
                                             ])
-                                            ->columnSpan(1),
-                                    ]),
-                            ]),
+                                            ->default('draft')
+                                            ->required(),
 
-                        Tabs\Tab::make('Topics & Lessons')
+                                        Select::make('access_type')
+                                            ->options([
+                                                'lifetime' => 'Lifetime Access',
+                                                'limited' => 'Limited Time',
+                                            ])
+                                            ->default('lifetime')
+                                            ->required()
+                                            ->live(),
+
+                                        TextInput::make('access_days')
+                                            ->numeric()
+                                            ->minValue(1)
+                                            ->suffix('days')
+                                            ->visible(fn ($get) => $get('access_type') === 'limited'),
+
+                                        TextInput::make('order')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0),
+                                    ])
+                                    ->columnSpan(4),
+
+                                Section::make('Pricing')
+                                    ->schema([
+                                        TextInput::make('price')
+                                            ->required()
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->minValue(0),
+
+                                        TextInput::make('sale_price')
+                                            ->numeric()
+                                            ->prefix('Rp')
+                                            ->minValue(0)
+                                            ->helperText('Leave empty for no sale'),
+                                    ])
+                                    ->columnSpan(4),
+
+                                Section::make('Tutors')
+                                    ->schema([
+                                        Select::make('tutors')
+                                            ->label('Tutors')
+                                            ->multiple()
+                                            ->relationship('tutors', 'name')
+                                            ->options(Tutor::active()->ordered()->pluck('name', 'id'))
+                                            ->searchable()
+                                            ->preload()
+                                            ->helperText('Select one or more tutors for this course. The first selected tutor will be marked as primary.'),
+                                    ])
+                                    ->columnSpan(4),
+
+                                Section::make('Media')
+                                    ->schema([
+                                        FileUpload::make('thumbnail')
+                                            ->image()
+                                            ->disk('public')
+                                            ->directory('courses/thumbnails')
+                                            ->imageEditor()
+                                            ->maxSize(2048),
+
+                                        TextInput::make('preview_url')
+                                            ->label('Preview Video URL')
+                                            ->url()
+                                            ->placeholder('https://youtube.com/...'),
+                                    ])
+                                    ->columnSpan(4),
+                            ])
+                            ->columns(12),
+
+                        Tab::make('Topics & Lessons')
                             ->icon('heroicon-o-rectangle-stack')
                             ->schema([
                                 Repeater::make('topics')

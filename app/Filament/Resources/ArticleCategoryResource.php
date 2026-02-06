@@ -51,7 +51,7 @@ class ArticleCategoryResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->helperText('URL-friendly version of the name'),
                     ])
-                    ->columns(2),
+                    ->columns(1),
             ]);
     }
 

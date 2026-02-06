@@ -10,7 +10,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -37,51 +36,51 @@ class TestimonialResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Testimonial Content')
                     ->schema([
-                        Section::make('Testimonial Content')
-                            ->schema([
-                                TextInput::make('name')
-                                    ->required()
-                                    ->maxLength(100),
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(100),
 
-                                TextInput::make('title')
-                                    ->label('Job Title / Role')
-                                    ->maxLength(100)
-                                    ->placeholder('e.g., CEO of Company XYZ'),
+                        TextInput::make('title')
+                            ->label('Job Title / Role')
+                            ->maxLength(100)
+                            ->placeholder('e.g., CEO of Company XYZ'),
 
-                                TextInput::make('company')
-                                    ->maxLength(100),
+                        TextInput::make('company')
+                            ->maxLength(100),
 
-                                Textarea::make('content')
-                                    ->required()
-                                    ->rows(4)
-                                    ->columnSpanFull(),
-                            ])
-                            ->columns(2)
-                            ->columnSpan(2),
+                        Textarea::make('content')
+                            ->required()
+                            ->rows(3)
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpan(4),
 
-                        Section::make('Settings')
-                            ->schema([
-                                FileUpload::make('avatar')
-                                    ->image()
-                                    ->disk('public')
-                                    ->directory('testimonials')
-                                    ->imageEditor()
-                                    ->circleCropper(),
+                Section::make('Settings')
+                    ->schema([
+                        FileUpload::make('avatar')
+                            ->image()
+                            ->disk('public')
+                            ->directory('testimonials')
+                            ->imageEditor()
+                            ->avatar()
+                            ->circleCropper()
+                            ->alignment('center')
+                            ->maxSize(1024),
 
-                                TextInput::make('order')
-                                    ->numeric()
-                                    ->default(0)
-                                    ->helperText('Lower numbers appear first'),
+                        TextInput::make('order')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Lower numbers appear first'),
 
-                                Toggle::make('is_active')
-                                    ->label('Active')
-                                    ->default(true),
-                            ])
-                            ->columnSpan(1),
-                    ]),
+                        Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true),
+                    ])
+                    ->columnSpan(3),
             ]);
     }
 

@@ -7,7 +7,6 @@ use Filament\Actions\EditAction;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -25,47 +24,40 @@ class ViewArticle extends ViewRecord
     public function infolist(Schema $schema): Schema
     {
         return $schema
+            ->columns(12)
             ->components([
-                Grid::make(3)
+                Section::make('Article Content')
                     ->schema([
-                        Grid::make(1)
-                            ->schema([
-                                Section::make('Article Content')
-                                    ->schema([
-                                        TextEntry::make('title'),
-                                        TextEntry::make('slug'),
-                                        TextEntry::make('excerpt'),
-                                        TextEntry::make('content')
-                                            ->html()
-                                            ->columnSpanFull(),
-                                    ]),
-                            ])
-                            ->columnSpan(2),
+                        TextEntry::make('title'),
+                        TextEntry::make('slug'),
+                        TextEntry::make('excerpt'),
+                        TextEntry::make('content')
+                            ->html()
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpan(12),
 
-                        Grid::make(1)
-                            ->schema([
-                                Section::make('Details')
-                                    ->schema([
-                                        TextEntry::make('category.name')
-                                            ->badge(),
-                                        TextEntry::make('is_published')
-                                            ->label('Status')
-                                            ->badge()
-                                            ->formatStateUsing(fn ($state) => $state ? 'Published' : 'Draft')
-                                            ->color(fn ($state) => $state ? 'success' : 'warning'),
-                                        TextEntry::make('published_at')
-                                            ->dateTime(),
-                                        TextEntry::make('created_at')
-                                            ->dateTime(),
-                                    ]),
+                Section::make('Details')
+                    ->schema([
+                        TextEntry::make('category.name')
+                            ->badge(),
+                        TextEntry::make('is_published')
+                            ->label('Status')
+                            ->badge()
+                            ->formatStateUsing(fn ($state) => $state ? 'Published' : 'Draft')
+                            ->color(fn ($state) => $state ? 'success' : 'warning'),
+                        TextEntry::make('published_at')
+                            ->dateTime(),
+                        TextEntry::make('created_at')
+                            ->dateTime(),
+                    ])
+                    ->columnSpan(4),
 
-                                Section::make('Featured Image')
-                                    ->schema([
-                                        ImageEntry::make('featured_image'),
-                                    ]),
-                            ])
-                            ->columnSpan(1),
-                    ]),
+                Section::make('Featured Image')
+                    ->schema([
+                        ImageEntry::make('featured_image'),
+                    ])
+                    ->columnSpan(4),
             ]);
     }
 }
