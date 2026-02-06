@@ -57,15 +57,29 @@
                                     </svg>
                                     Punya Kode Kupon?
                                 </label>
-                                <div class="flex flex-col sm:flex-row gap-2">
-                                    <input 
-                                        type="text" 
-                                        name="coupon_code" 
-                                        id="coupon_code"
-                                        class="flex-1 min-w-0 rounded-xl border-gray-200 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-3 border text-sm"
-                                        placeholder="Masukkan kode kupon"
-                                        oninput="resetCouponState()"
-                                    >
+                                <div class="flex flex-col sm:flex-row gap-2 relative">
+                                    <div class="relative flex-1 min-w-0">
+                                        <input 
+                                            type="text" 
+                                            name="coupon_code" 
+                                            id="coupon_code"
+                                            class="w-full rounded-xl border-2 border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-3 pr-12 text-sm transition-all duration-200"
+                                            placeholder="Masukkan kode kupon"
+                                            oninput="resetCouponState()"
+                                        >
+                                        <!-- Success Icon -->
+                                        <div id="coupon-success-icon" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                                            <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                        <!-- Error Icon -->
+                                        <div id="coupon-error-icon" class="hidden absolute right-3 top-1/2 -translate-y-1/2">
+                                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                        </div>
+                                    </div>
                                     <button 
                                         type="button" 
                                         onclick="applyCoupon()"
@@ -426,14 +440,23 @@
 
         function resetCouponState() {
             const couponInput = document.getElementById('coupon_code');
+            const successIcon = document.getElementById('coupon-success-icon');
+            const errorIcon = document.getElementById('coupon-error-icon');
+            
             // Reset to default border when user types
-            couponInput.classList.remove('border-green-500', 'border-red-500');
-            couponInput.classList.add('border-gray-200');
+            couponInput.classList.remove('border-green-500', 'border-red-500', 'bg-green-50', 'bg-red-50');
+            couponInput.classList.add('border-gray-300');
+            
+            // Hide icons
+            successIcon.classList.add('hidden');
+            errorIcon.classList.add('hidden');
         }
 
         function applyCoupon() {
             const code = document.getElementById('coupon_code').value.trim();
             const couponInput = document.getElementById('coupon_code');
+            const successIcon = document.getElementById('coupon-success-icon');
+            const errorIcon = document.getElementById('coupon-error-icon');
             const discountRow = document.getElementById('discount-row');
             const discountAmount = document.getElementById('discount-amount');
             const totalEl = document.getElementById('total');
@@ -472,9 +495,11 @@
                     discountAmount.textContent = '-' + formatRupiah(data.discount);
                     totalEl.textContent = formatRupiah(data.total);
                     
-                    // Green border on success (no background)
-                    couponInput.classList.remove('border-red-500', 'border-gray-200');
-                    couponInput.classList.add('border-green-500');
+                    // Green border + success icon
+                    couponInput.classList.remove('border-red-500', 'border-gray-300', 'bg-red-50');
+                    couponInput.classList.add('border-green-500', 'bg-green-50');
+                    successIcon.classList.remove('hidden');
+                    errorIcon.classList.add('hidden');
                     
                     showToast('✓ ' + data.message, 'success');
                 } else {
@@ -482,17 +507,21 @@
                     discountRow.style.display = 'none';
                     totalEl.textContent = formatRupiah(originalPrice);
                     
-                    // Red border on failure (no background)
-                    couponInput.classList.remove('border-green-500', 'border-gray-200');
-                    couponInput.classList.add('border-red-500');
+                    // Red border + error icon
+                    couponInput.classList.remove('border-green-500', 'border-gray-300', 'bg-green-50');
+                    couponInput.classList.add('border-red-500', 'bg-red-50');
+                    errorIcon.classList.remove('hidden');
+                    successIcon.classList.add('hidden');
                     
                     showToast(data.message, 'error');
                 }
             })
             .catch(error => {
-                // Red border on error (no background)
-                couponInput.classList.remove('border-green-500', 'border-gray-200');
-                couponInput.classList.add('border-red-500');
+                // Red border + error icon
+                couponInput.classList.remove('border-green-500', 'border-gray-300', 'bg-green-50');
+                couponInput.classList.add('border-red-500', 'bg-red-50');
+                errorIcon.classList.remove('hidden');
+                successIcon.classList.add('hidden');
                 
                 showToast('Terjadi kesalahan. Silakan coba lagi.', 'error');
             })
