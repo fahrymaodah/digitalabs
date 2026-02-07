@@ -5,28 +5,52 @@ namespace App\Filament\Widgets;
 use App\Models\Course;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\AffiliateCommission;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Carbon;
 
 class StatsOverview extends BaseWidget
 {
     protected static ?int $sort = 1;
 
+    public function getColumns(): int | array
+    {
+        return 6;
+    }
+
     protected function getStats(): array
     {
+        // Get last 7 days revenue for chart
+        $revenueChart = collect(range(6, 0))->map(function ($daysAgo) {
+            return Order::where('status', 'paid')
+                ->whereDate('paid_at', Carbon::today()->subDays($daysAgo))
+                ->sum('total') / 1000000; // Convert to millions for chart readability
+        })->toArray();
+
         // Revenue calculations
         $grossRevenue = Order::where('status', 'paid')->sum('total');
         $monthlyGrossRevenue = Order::where('status', 'paid')
             ->whereMonth('paid_at', now()->month)
             ->whereYear('paid_at', now()->year)
             ->sum('total');
+        
+        // Last month comparison
+        $lastMonthRevenue = Order::where('status', 'paid')
+            ->whereMonth('paid_at', now()->subMonth()->month)
+            ->whereYear('paid_at', now()->subMonth()->year)
+            ->sum('total');
+        
+        $revenueGrowth = $lastMonthRevenue > 0 
+            ? round((($monthlyGrossRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1) 
+            : 100;
 
         // Affiliate commission calculations
-        $totalAffiliateCommission = \App\Models\AffiliateCommission::whereHas('order', function($query) {
+        $totalAffiliateCommission = AffiliateCommission::whereHas('order', function($query) {
             $query->where('status', 'paid');
         })->sum('commission_amount');
         
-        $monthlyAffiliateCommission = \App\Models\AffiliateCommission::whereHas('order', function($query) {
+        $monthlyAffiliateCommission = AffiliateCommission::whereHas('order', function($query) {
             $query->where('status', 'paid')
                 ->whereMonth('paid_at', now()->month)
                 ->whereYear('paid_at', now()->year);
@@ -36,48 +60,90 @@ class StatsOverview extends BaseWidget
         $netRevenue = $grossRevenue - $totalAffiliateCommission;
         $monthlyNetRevenue = $monthlyGrossRevenue - $monthlyAffiliateCommission;
 
+        // User stats
         $totalUsers = User::count();
         $newUsersThisMonth = User::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
+        $lastMonthUsers = User::whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+        $userGrowth = $lastMonthUsers > 0 
+            ? round((($newUsersThisMonth - $lastMonthUsers) / $lastMonthUsers) * 100, 1) 
+            : 100;
+
+        // User chart (last 7 days)
+        $userChart = collect(range(6, 0))->map(function ($daysAgo) {
+            return User::whereDate('created_at', Carbon::today()->subDays($daysAgo))->count();
+        })->toArray();
 
         $totalCourses = Course::where('status', 'published')->count();
+        $totalEnrollments = \App\Models\UserCourse::count();
 
+        // Order stats
         $pendingOrders = Order::where('status', 'pending')->count();
+        $todayOrders = Order::whereDate('created_at', today())->count();
+        $paidToday = Order::where('status', 'paid')->whereDate('paid_at', today())->count();
 
         return [
-            Stat::make('Gross Revenue', 'Rp ' . number_format($grossRevenue, 0, ',', '.'))
-                ->description('Monthly: Rp ' . number_format($monthlyGrossRevenue, 0, ',', '.'))
-                ->descriptionIcon('heroicon-m-arrow-trending-up')
-                ->color('info')
-                ->chart([7, 4, 6, 8, 10, 12, 15]),
+            Stat::make('💰 Total Revenue', 'Rp ' . $this->formatNumber($grossRevenue))
+                ->description($this->formatGrowth($revenueGrowth) . ' dari bulan lalu')
+                ->descriptionIcon($revenueGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($revenueGrowth >= 0 ? 'success' : 'danger')
+                ->chart($revenueChart)
+                ->columnSpan(1),
 
-            Stat::make('Net Revenue', 'Rp ' . number_format($netRevenue, 0, ',', '.'))
-                ->description('Monthly: Rp ' . number_format($monthlyNetRevenue, 0, ',', '.'))
+            Stat::make('💵 Net Revenue', 'Rp ' . $this->formatNumber($netRevenue))
+                ->description('Bulan ini: Rp ' . $this->formatNumber($monthlyNetRevenue))
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success')
-                ->chart([5, 3, 5, 7, 9, 11, 13]),
+                ->chart($revenueChart)
+                ->columnSpan(1),
 
-            Stat::make('Affiliate Commission', 'Rp ' . number_format($totalAffiliateCommission, 0, ',', '.'))
-                ->description('Monthly: Rp ' . number_format($monthlyAffiliateCommission, 0, ',', '.'))
-                ->descriptionIcon('heroicon-m-user-group')
+            Stat::make('🤝 Komisi Affiliate', 'Rp ' . $this->formatNumber($totalAffiliateCommission))
+                ->description('Bulan ini: Rp ' . $this->formatNumber($monthlyAffiliateCommission))
+                ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('warning')
-                ->chart([2, 1, 1, 1, 1, 1, 2]),
+                ->columnSpan(1),
 
-            Stat::make('Total Users', number_format($totalUsers))
-                ->description('+' . $newUsersThisMonth . ' this month')
-                ->descriptionIcon('heroicon-m-user-plus')
-                ->color('info'),
+            Stat::make('👥 Total Users', number_format($totalUsers))
+                ->description($this->formatGrowth($userGrowth) . ' (+' . $newUsersThisMonth . ' bulan ini)')
+                ->descriptionIcon($userGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+                ->color($userGrowth >= 0 ? 'info' : 'warning')
+                ->chart($userChart)
+                ->columnSpan(1),
 
-            Stat::make('Published Courses', $totalCourses)
-                ->description('Active courses')
+            Stat::make('📚 Course & Enrollments', $totalCourses . ' courses')
+                ->description($totalEnrollments . ' total enrollments')
                 ->descriptionIcon('heroicon-m-academic-cap')
-                ->color('primary'),
+                ->color('primary')
+                ->columnSpan(1),
 
-            Stat::make('Pending Orders', $pendingOrders)
-                ->description('Awaiting payment')
-                ->descriptionIcon('heroicon-m-clock')
-                ->color($pendingOrders > 0 ? 'danger' : 'success'),
+            Stat::make('🛒 Orders Hari Ini', $todayOrders . ' orders')
+                ->description($paidToday . ' paid, ' . $pendingOrders . ' pending')
+                ->descriptionIcon($pendingOrders > 5 ? 'heroicon-m-exclamation-triangle' : 'heroicon-m-shopping-cart')
+                ->color($pendingOrders > 5 ? 'danger' : 'success')
+                ->columnSpan(1),
         ];
+    }
+
+    private function formatNumber(float $number): string
+    {
+        if ($number >= 1000000000) {
+            return number_format($number / 1000000000, 1, ',', '.') . 'M';
+        }
+        if ($number >= 1000000) {
+            return number_format($number / 1000000, 1, ',', '.') . 'jt';
+        }
+        if ($number >= 1000) {
+            return number_format($number / 1000, 1, ',', '.') . 'rb';
+        }
+        return number_format($number, 0, ',', '.');
+    }
+
+    private function formatGrowth(float $growth): string
+    {
+        $prefix = $growth >= 0 ? '+' : '';
+        return $prefix . $growth . '%';
     }
 }

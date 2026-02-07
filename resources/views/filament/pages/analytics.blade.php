@@ -89,7 +89,7 @@
             <x-slot name="description">Pengunjung berdasarkan perangkat</x-slot>
             
             {{-- Donut Chart --}}
-            <div class="h-56 flex items-center justify-center mb-4">
+            <div class="h-56 flex items-center justify-center mb-8">
                 <canvas id="deviceChart"></canvas>
             </div>
 
@@ -125,29 +125,32 @@
         <x-filament::section>
             <x-slot name="heading">Traffic Sources</x-slot>
             <x-slot name="description">Dari mana pengunjung datang</x-slot>
-            <div style="height: 600px;">
+            <div style="height: 550px;">
                 <canvas id="trafficSourcesChart"></canvas>
             </div>
         </x-filament::section>
     </div>
 
-    {{-- Top Pages --}}
-    <x-filament::section class="mb-6">
-        <x-slot name="heading">Top 10 Pages</x-slot>
-        <x-slot name="description">Halaman paling banyak dikunjungi</x-slot>
-        <div class="h-96">
-            <canvas id="topPagesChart"></canvas>
-        </div>
-    </x-filament::section>
+    {{-- Top Pages & Peak Hours (2 columns) --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {{-- Top Pages --}}
+        <x-filament::section>
+            <x-slot name="heading">Top 10 Pages</x-slot>
+            <x-slot name="description">Halaman paling banyak dikunjungi</x-slot>
+            <div id="topPagesContainer" class="h-96">
+                <canvas id="topPagesChart"></canvas>
+            </div>
+        </x-filament::section>
 
-    {{-- Peak Hours --}}
-    <x-filament::section class="mb-6">
-        <x-slot name="heading">Peak Hours</x-slot>
-        <x-slot name="description">Jam dengan aktivitas tertinggi (7 hari terakhir)</x-slot>
-        <div class="h-64">
-            <canvas id="peakHoursChart"></canvas>
-        </div>
-    </x-filament::section>
+        {{-- Peak Hours --}}
+        <x-filament::section>
+            <x-slot name="heading">Peak Hours</x-slot>
+            <x-slot name="description">Jam dengan aktivitas tertinggi (7 hari terakhir)</x-slot>
+            <div id="peakHoursContainer" class="h-96">
+                <canvas id="peakHoursChart"></canvas>
+            </div>
+        </x-filament::section>
+    </div>
 
     {{-- Tables: Location & Browser --}}
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -759,6 +762,19 @@
                     }
                 }
             });
+
+            // Sync heights of Top Pages and Peak Hours charts
+            // const topPagesContainer = document.getElementById('topPagesContainer');
+            // const peakHoursContainer = document.getElementById('peakHoursContainer');
+            
+            // if (topPagesContainer && peakHoursContainer) {
+            //     const topPagesHeight = topPagesContainer.offsetHeight;
+            //     const peakHoursHeight = peakHoursContainer.offsetHeight;
+            //     const maxHeight = Math.max(topPagesHeight, peakHoursHeight);
+                
+            //     topPagesContainer.style.height = maxHeight + 'px';
+            //     peakHoursContainer.style.height = maxHeight + 'px';
+            // }
         });
     </script>
 </x-filament-panels::page>

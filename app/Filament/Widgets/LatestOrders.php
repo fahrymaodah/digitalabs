@@ -10,31 +10,47 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LatestOrders extends BaseWidget
 {
-    protected static ?string $heading = 'Latest Orders';
-
     protected static ?int $sort = 3;
 
     protected int|string|array $columnSpan = 1;
+    
+    protected static ?string $pollingInterval = '30s';
+
+    public function getHeading(): ?string
+    {
+        return '🛒 Order Terbaru';
+    }
 
     public function table(Table $table): Table
     {
         return $table
             ->query(
                 Order::query()
+                    ->with(['user', 'items.course'])
                     ->latest()
                     ->limit(5)
             )
             ->columns([
                 TextColumn::make('order_number')
                     ->label('Order')
-                    ->searchable(),
+                    ->description(fn (Order $record): string => $record->created_at->diffForHumans())
+                    ->searchable()
+                    ->weight('bold'),
 
                 TextColumn::make('user.name')
                     ->label('Customer')
-                    ->limit(15),
+                    ->description(fn (Order $record): string => $record->user?->email ?? '-')
+                    ->limit(20),
 
                 TextColumn::make('total')
-                    ->money('IDR'),
+                    ->label('Total')
+                    ->money('IDR')
+                    ->weight('bold')
+                    ->color(fn (Order $record): string => match($record->status) {
+                        'paid' => 'success',
+                        'pending' => 'warning',
+                        default => 'gray',
+                    }),
 
                 TextColumn::make('status')
                     ->badge()
@@ -44,13 +60,19 @@ class LatestOrders extends BaseWidget
                         'expired' => 'danger',
                         'cancelled' => 'gray',
                         default => 'gray',
+                    })
+                    ->icon(fn (string $state): string => match ($state) {
+                        'pending' => 'heroicon-m-clock',
+                        'paid' => 'heroicon-m-check-circle',
+                        'expired' => 'heroicon-m-x-circle',
+                        'cancelled' => 'heroicon-m-no-symbol',
+                        default => 'heroicon-m-question-mark-circle',
                     }),
-
-                TextColumn::make('created_at')
-                    ->label('Date')
-                    ->since(),
             ])
             ->recordUrl(fn (Order $record): string => OrderResource::getUrl('view', ['record' => $record->id]))
-            ->paginated(false);
+            ->paginated(false)
+            ->emptyStateHeading('Belum ada order')
+            ->emptyStateDescription('Order baru akan muncul di sini.')
+            ->emptyStateIcon('heroicon-o-shopping-cart');
     }
 }
