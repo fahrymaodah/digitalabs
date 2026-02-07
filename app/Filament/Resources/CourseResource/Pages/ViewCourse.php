@@ -64,8 +64,8 @@ class ViewCourse extends ViewRecord
                                                                                     ->schema([
                                                                                         TextEntry::make('title')
                                                                                             ->columnSpan(2),
-                                                                                        TextEntry::make('duration')
-                                                                                            ->suffix(' min')
+                                                                                        TextEntry::make('formatted_duration')
+                                                                                            ->label('Duration')
                                                                                             ->placeholder('-'),
                                                                                         IconEntry::make('is_free')
                                                                                             ->label('Free')
@@ -349,8 +349,7 @@ class ViewCourse extends ViewRecord
                                     ]),
                             ]),
                     ])
-                    ->columnSpanFull()
-                    ->persistTabInQueryString(),
+                    ->columnSpanFull(),
             ]);
     }
 }

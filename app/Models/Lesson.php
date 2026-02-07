@@ -81,12 +81,17 @@ class Lesson extends Model
     // ==================== ACCESSORS ====================
 
     /**
-     * Get formatted duration (e.g., "5:30")
+     * Get formatted duration (e.g., "1:05:30" or "5:30")
      */
     public function getFormattedDurationAttribute(): string
     {
-        $minutes = floor($this->duration / 60);
+        $hours = floor($this->duration / 3600);
+        $minutes = floor(($this->duration % 3600) / 60);
         $seconds = $this->duration % 60;
+
+        if ($hours > 0) {
+            return sprintf('%d:%02d:%02d', $hours, $minutes, $seconds);
+        }
 
         return sprintf('%d:%02d', $minutes, $seconds);
     }

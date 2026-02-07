@@ -333,117 +333,108 @@
         </div>
     </x-filament::section>
 
-    {{-- 2. Landing Pages Performance --}}
-    <x-filament::section class="mb-6">
-        <x-slot name="heading">
-            <div class="flex items-center gap-2">
-                <x-heroicon-o-rocket-launch class="w-6 h-6 text-primary-600" />
-                <span>Landing Pages Performance</span>
+    {{-- Landing Pages & Exit Pages (2 columns) --}}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {{-- 2. Landing Pages Performance --}}
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-rocket-launch class="w-6 h-6 text-primary-600" />
+                    <span>Landing Pages Performance</span>
+                </div>
+            </x-slot>
+            <x-slot name="description">Performa halaman landing untuk konversi</x-slot>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="py-3 px-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Landing Page</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Sessions</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Bounce</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Conv.</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach($landingPagesData as $page)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-2">
+                                <div class="flex items-center gap-2">
+                                    <x-heroicon-o-document-text class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                    <span class="font-medium text-gray-900 dark:text-white text-xs truncate">{{ $page['page'] }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm font-bold text-primary-600 dark:text-primary-400">
+                                {{ number_format($page['sessions']) }}
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm">
+                                <x-filament::badge :color="$page['bounceRate'] > 50 ? 'danger' : 'success'" size="xs">
+                                    {{ number_format($page['bounceRate'], 1) }}%
+                                </x-filament::badge>
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm">
+                                <x-filament::badge color="success" size="xs">
+                                    {{ number_format($page['conversionRate'], 1) }}%
+                                </x-filament::badge>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </x-slot>
-        <x-slot name="description">Performa halaman landing untuk konversi</x-slot>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <th class="py-3 px-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Landing Page</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Sessions</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Bounce Rate</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Avg Duration</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Conversions</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Conv. Rate</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @foreach($landingPagesData as $page)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-2">
-                            <div class="flex items-center gap-2">
-                                <x-heroicon-o-document-text class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                <span class="font-medium text-gray-900 dark:text-white text-sm truncate">{{ $page['page'] }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm font-bold text-primary-600 dark:text-primary-400">
-                            {{ number_format($page['sessions']) }}
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm">
-                            <x-filament::badge :color="$page['bounceRate'] > 50 ? 'danger' : ($page['bounceRate'] > 40 ? 'warning' : 'success')">
-                                {{ number_format($page['bounceRate'], 1) }}%
-                            </x-filament::badge>
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm text-gray-600 dark:text-gray-400">
-                            {{ $page['avgDuration'] }}
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm font-bold text-success-600 dark:text-success-400">
-                            {{ $page['conversions'] }}
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm">
-                            <x-filament::badge :color="$page['conversionRate'] > 3 ? 'success' : 'warning'">
-                                {{ number_format($page['conversionRate'], 2) }}%
-                            </x-filament::badge>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </x-filament::section>
+        </x-filament::section>
 
-    {{-- 3. Exit Pages --}}
-    <x-filament::section class="mb-6">
-        <x-slot name="heading">
-            <div class="flex items-center gap-2">
-                <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 text-danger-600" />
-                <span>Exit Pages (Problem Areas)</span>
+        {{-- 3. Exit Pages --}}
+        <x-filament::section>
+            <x-slot name="heading">
+                <div class="flex items-center gap-2">
+                    <x-heroicon-o-arrow-right-on-rectangle class="w-6 h-6 text-danger-600" />
+                    <span>Exit Pages (Problem Areas)</span>
+                </div>
+            </x-slot>
+            <x-slot name="description">Halaman dimana pengunjung keluar</x-slot>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="py-3 px-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Exit Page</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Exits</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Exit Rate</th>
+                            <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Views</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                        @foreach($exitPagesData as $page)
+                        <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-2">
+                                <div class="flex items-center gap-2">
+                                    @if($page['exitRate'] > 60)
+                                        <x-heroicon-o-exclamation-triangle class="w-4 h-4 text-danger-500 flex-shrink-0" />
+                                    @else
+                                        <x-heroicon-o-arrow-right-circle class="w-4 h-4 text-gray-400 flex-shrink-0" />
+                                    @endif
+                                    <span class="font-medium text-gray-900 dark:text-white text-xs truncate">{{ $page['page'] }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm font-bold text-gray-900 dark:text-white">
+                                {{ number_format($page['exits']) }}
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm">
+                                <x-filament::badge :color="$page['exitRate'] > 60 ? 'danger' : 'success'" size="xs">
+                                    {{ number_format($page['exitRate'], 1) }}%
+                                </x-filament::badge>
+                            </td>
+                            <td class="py-3 px-2 text-right text-sm text-gray-600 dark:text-gray-400">
+                                {{ number_format($page['pageViews']) }}
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </x-slot>
-        <x-slot name="description">Halaman dimana pengunjung paling sering keluar</x-slot>
-        
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead>
-                    <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <th class="py-3 px-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Exit Page</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Total Exits</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Exit Rate</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Page Views</th>
-                        <th class="py-3 px-2 text-right text-xs font-semibold text-gray-600 dark:text-gray-400">Avg Time Before Exit</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-                    @foreach($exitPagesData as $page)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
-                        <td class="py-3 px-2">
-                            <div class="flex items-center gap-2">
-                                @if($page['exitRate'] > 60)
-                                    <x-heroicon-o-exclamation-triangle class="w-4 h-4 text-danger-500 flex-shrink-0" />
-                                @else
-                                    <x-heroicon-o-arrow-right-circle class="w-4 h-4 text-gray-400 flex-shrink-0" />
-                                @endif
-                                <span class="font-medium text-gray-900 dark:text-white text-sm truncate">{{ $page['page'] }}</span>
-                            </div>
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm font-bold text-gray-900 dark:text-white">
-                            {{ number_format($page['exits']) }}
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm">
-                            <x-filament::badge :color="$page['exitRate'] > 60 ? 'danger' : ($page['exitRate'] > 45 ? 'warning' : 'success')">
-                                {{ number_format($page['exitRate'], 1) }}%
-                            </x-filament::badge>
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm text-gray-600 dark:text-gray-400">
-                            {{ number_format($page['pageViews']) }}
-                        </td>
-                        <td class="py-3 px-2 text-right text-sm text-gray-600 dark:text-gray-400">
-                            {{ $page['avgTimeBeforeExit'] }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-    </x-filament::section>
+        </x-filament::section>
+    </div>
 
     {{-- 4. Demographics & Interests --}}
     <x-filament::section class="mb-6">
